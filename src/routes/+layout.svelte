@@ -108,10 +108,16 @@
 	.nav-content {
 		max-width: 1400px;
 		margin: 0 auto;
-		padding: 1rem 2rem;
+		padding: 0.75rem 1rem;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	@media (min-width: 640px) {
+		.nav-content {
+			padding: 1rem 2rem;
+		}
 	}
 
 	.logo {
@@ -137,13 +143,19 @@
 	}
 
 	.logo-title {
-		font-size: 1.5rem;
+		font-size: 1.25rem;
 		font-weight: 700;
 		background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
 		background-clip: text;
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		line-height: 1.2;
+	}
+
+	@media (min-width: 640px) {
+		.logo-title {
+			font-size: 1.5rem;
+		}
 	}
 
 	.logo-subtitle {
@@ -154,15 +166,21 @@
 
 	.nav-links {
 		display: flex;
-		gap: 0.75rem;
+		gap: 0.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.nav-links {
+			gap: 0.75rem;
+		}
 	}
 
 	.nav-links a {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.875rem 1.5rem;
-		border-radius: 16px;
+		gap: 0.5rem;
+		padding: 0.625rem 1rem;
+		border-radius: 12px;
 		text-decoration: none;
 		transition: all 0.3s ease;
 		border: 1px solid rgba(255, 255, 255, 0.1);
@@ -170,6 +188,16 @@
 		position: relative;
 		overflow: hidden;
 		color: rgba(255, 255, 255, 0.9);
+		font-size: 0.75rem;
+	}
+
+	@media (min-width: 640px) {
+		.nav-links a {
+			gap: 0.75rem;
+			padding: 0.875rem 1.5rem;
+			border-radius: 16px;
+			font-size: 0.875rem;
+		}
 	}
 
 	.nav-links a::before {
@@ -357,9 +385,9 @@
 
 	@media (max-width: 768px) {
 		.nav-content {
-			padding: 1rem;
+			padding: 0.75rem 1rem;
 			flex-direction: column;
-			gap: 1rem;
+			gap: 0.75rem;
 		}
 
 		.logo {
@@ -373,12 +401,13 @@
 		.nav-links {
 			width: 100%;
 			justify-content: center;
+			gap: 0.5rem;
 		}
 
 		.nav-links a {
 			flex: 1;
 			justify-content: center;
-			padding: 0.75rem 1rem;
+			padding: 0.5rem 0.75rem;
 		}
 
 		.nav-text {
@@ -392,13 +421,17 @@
 		/* 푸터 모바일 스타일 */
 		.footer-content {
 			grid-template-columns: 1fr;
-			gap: 2rem;
-			padding: 2rem 1rem 1.5rem;
+			gap: 1.5rem;
+			padding: 1.5rem 1rem 1rem;
+		}
+
+		.footer-section {
+			text-align: center;
 		}
 
 		.footer-bottom-content {
 			flex-direction: column;
-			gap: 1rem;
+			gap: 0.75rem;
 			text-align: center;
 			padding: 0 1rem;
 		}
@@ -406,21 +439,59 @@
 		.footer-disclaimer {
 			text-align: center;
 		}
+
+		.footer-title {
+			font-size: 1.25rem;
+		}
+
+		.footer-subtitle {
+			font-size: 0.7rem;
+		}
+
+		.footer-description {
+			font-size: 0.7rem;
+		}
+
+		.footer-heading {
+			font-size: 0.875rem;
+		}
 	}
 
 	@media (max-width: 480px) {
 		.nav-links a {
 			flex-direction: column;
-			gap: 0.5rem;
-			padding: 0.75rem 0.5rem;
+			gap: 0.25rem;
+			padding: 0.5rem 0.375rem;
+			font-size: 0.65rem;
 		}
 
 		.nav-icon {
-			font-size: 1.5rem;
+			font-size: 1.25rem;
 		}
 
 		.nav-label {
-			font-size: 0.75rem;
+			font-size: 0.65rem;
+		}
+
+		.logo-title {
+			font-size: 1rem;
+		}
+
+		.footer-content {
+			padding: 1rem 0.75rem 0.75rem;
+			gap: 1rem;
+		}
+
+		.footer-title {
+			font-size: 1rem;
+		}
+
+		.footer-subtitle {
+			font-size: 0.65rem;
+		}
+
+		.footer-description {
+			font-size: 0.65rem;
 		}
 	}
 </style>
