@@ -39,6 +39,13 @@
 						<span class="nav-desc">계산기</span>
 					</div>
 				</a>
+				<a href="/journal" class:active={isActive('/journal')}>
+					<div class="nav-icon">📊</div>
+					<div class="nav-text">
+						<span class="nav-label">매매일지</span>
+						<span class="nav-desc">거래 기록</span>
+					</div>
+				</a>
 			</div>
 		</div>
 	</nav>
@@ -64,6 +71,7 @@
 				<ul class="footer-links">
 					<li><a href="/" class="footer-link">대시보드</a></li>
 					<li><a href="/calculator" class="footer-link">분할 익절 계산기</a></li>
+					<li><a href="/journal" class="footer-link">매매일지</a></li>
 				</ul>
 			</div>
 
