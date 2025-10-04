@@ -253,36 +253,36 @@
 				<div class="space-y-6">
 					<!-- 성과 요약 카드 -->
 					<div
-						class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-6 backdrop-blur-xl"
+						class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-4 backdrop-blur-xl sm:p-6"
 					>
-						<h3 class="mb-6 text-lg font-bold text-white xl:text-xl">📈 성과 요약</h3>
-						<div class="space-y-4">
-							<div class="flex justify-between text-sm">
+						<h3 class="mb-4 text-lg font-bold text-white sm:mb-6 xl:text-xl">📈 성과 요약</h3>
+						<div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-1 lg:space-y-4">
+							<div class="flex justify-between text-xs sm:text-sm">
 								<span class="text-gray-400">총 거래 수</span>
 								<span class="font-mono font-bold text-white">{stats().totalTrades}</span>
 							</div>
-							<div class="flex justify-between text-sm">
+							<div class="flex justify-between text-xs sm:text-sm">
 								<span class="text-gray-400">승률</span>
 								<span class="font-mono font-bold text-blue-400">{stats().winRate.toFixed(1)}%</span>
 							</div>
-							<div class="flex justify-between text-sm">
+							<div class="flex justify-between text-xs sm:text-sm">
 								<span class="text-gray-400">총 수익</span>
 								<span class="font-mono font-bold text-emerald-400"
 									>{formatCurrency(stats().totalProfit)}</span
 								>
 							</div>
-							<div class="flex justify-between text-sm">
+							<div class="flex justify-between text-xs sm:text-sm">
 								<span class="text-gray-400">총 손실</span>
 								<span class="font-mono font-bold text-red-400"
 									>{formatCurrency(stats().totalLoss)}</span
 								>
 							</div>
-							<div class="border-t border-white/10 pt-4">
+							<div class="col-span-2 border-t border-white/10 pt-3 lg:col-span-1 lg:pt-4">
 								<div class="flex justify-between">
-									<span class="font-medium text-white">순수익</span>
+									<span class="text-xs font-medium text-white sm:text-sm">순수익</span>
 									<div class="text-right">
 										<div
-											class="font-mono text-xl font-bold {stats().netProfit >= 0
+											class="font-mono text-lg font-bold sm:text-xl {stats().netProfit >= 0
 												? 'text-emerald-400'
 												: 'text-red-400'}"
 										>
@@ -307,10 +307,10 @@
 
 					<!-- 거래 추가 폼 -->
 					{#if showAddForm}
-						<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+						<div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl sm:p-6">
 							<h3 class="mb-4 text-lg font-bold text-white">새 거래 추가</h3>
 							<div class="space-y-4">
-								<div class="grid grid-cols-2 gap-4">
+								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<div>
 										<label for="action" class="mb-2 block text-sm font-medium text-gray-300">
 											거래 유형
@@ -350,7 +350,7 @@
 									/>
 								</div>
 
-								<div class="grid grid-cols-2 gap-4">
+								<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<div>
 										<label for="quantity" class="mb-2 block text-sm font-medium text-gray-300">
 											수량
@@ -442,51 +442,132 @@
 						<div class="border-b border-white/10 bg-white/5 p-4 sm:p-6">
 							<h3 class="text-lg font-bold text-white xl:text-xl">거래 기록</h3>
 						</div>
-						<div class="overflow-x-auto">
-							<table class="w-full text-xs sm:text-sm">
-								<thead class="border-b border-white/10 bg-white/5">
-									<tr>
-										<th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 sm:text-sm">
-											날짜
-										</th>
-										<th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 sm:text-sm">
-											종목
-										</th>
-										<th
-											class="px-4 py-3 text-center text-xs font-semibold text-gray-300 sm:text-sm"
-										>
-											거래
-										</th>
-										<th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 sm:text-sm">
-											수량
-										</th>
-										<th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 sm:text-sm">
-											단가
-										</th>
-										<th class="px-4 py-3 text-right text-xs font-semibold text-gray-300 sm:text-sm">
-											금액
-										</th>
-										<th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 sm:text-sm">
-											메모
-										</th>
-										<th
-											class="px-4 py-3 text-center text-xs font-semibold text-gray-300 sm:text-sm"
-										>
-											작업
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									{#if entries.length === 0}
+
+						{#if entries.length === 0}
+							<div class="py-8 text-center text-xs text-gray-500 sm:py-16 sm:text-sm">
+								아직 거래 기록이 없습니다. 첫 번째 거래를 추가해보세요!
+							</div>
+						{:else}
+							<!-- 모바일: 카드 형태 -->
+							<div class="block lg:hidden">
+								<div class="space-y-3 p-4">
+									{#each sortedEntries() as entry}
+										<div class="rounded-xl border border-white/10 bg-white/5 p-4">
+											<div class="flex items-start justify-between">
+												<div class="flex-1">
+													<div class="mb-2 flex items-center gap-2">
+														<span
+															class="inline-flex items-center rounded-lg border border-white/20 bg-white/10 px-2 py-1 font-mono text-xs font-medium text-white"
+														>
+															{entry.symbol}
+														</span>
+														<span
+															class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium {entry.action ===
+															'buy'
+																? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/30'
+																: 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30'}"
+														>
+															{entry.action === 'buy' ? '매수' : '매도'}
+														</span>
+													</div>
+													<div class="mb-2 text-xs text-gray-400">
+														{formatDate(entry.date)}
+													</div>
+													<div class="grid grid-cols-2 gap-2 text-xs">
+														<div>
+															<span class="text-gray-400">수량:</span>
+															<span class="ml-1 font-mono text-white">{entry.quantity}</span>
+														</div>
+														<div>
+															<span class="text-gray-400">단가:</span>
+															<span class="ml-1 font-mono text-white"
+																>${entry.price.toFixed(2)}</span
+															>
+														</div>
+													</div>
+													<div class="mt-2">
+														<span class="text-xs text-gray-400">금액:</span>
+														<span class="ml-1 font-mono text-sm font-bold text-white"
+															>{formatCurrency(entry.amount)}</span
+														>
+													</div>
+													{#if entry.notes}
+														<div class="mt-2">
+															<p class="text-xs text-gray-300">{entry.notes}</p>
+														</div>
+													{/if}
+													{#if entry.tags && entry.tags.length > 0}
+														<div class="mt-2 flex flex-wrap gap-1">
+															{#each entry.tags as tag}
+																<span
+																	class="inline-flex items-center rounded-full bg-blue-500/20 px-1.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30"
+																>
+																	{tag}
+																</span>
+															{/each}
+														</div>
+													{/if}
+												</div>
+												<button
+													onclick={() => deleteEntry(entry.id)}
+													class="rounded-lg bg-red-500/20 px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/30"
+												>
+													삭제
+												</button>
+											</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+
+							<!-- 데스크톱: 테이블 형태 -->
+							<div class="hidden overflow-x-auto lg:block">
+								<table class="w-full text-xs sm:text-sm">
+									<thead class="border-b border-white/10 bg-white/5">
 										<tr>
-											<td
-												colspan="8"
-												class="py-8 text-center text-xs text-gray-500 sm:py-16 sm:text-sm"
+											<th
+												class="px-4 py-3 text-left text-xs font-semibold text-gray-300 sm:text-sm"
 											>
-												아직 거래 기록이 없습니다. 첫 번째 거래를 추가해보세요!
-											</td>
+												날짜
+											</th>
+											<th
+												class="px-4 py-3 text-left text-xs font-semibold text-gray-300 sm:text-sm"
+											>
+												종목
+											</th>
+											<th
+												class="px-4 py-3 text-center text-xs font-semibold text-gray-300 sm:text-sm"
+											>
+												거래
+											</th>
+											<th
+												class="px-4 py-3 text-right text-xs font-semibold text-gray-300 sm:text-sm"
+											>
+												수량
+											</th>
+											<th
+												class="px-4 py-3 text-right text-xs font-semibold text-gray-300 sm:text-sm"
+											>
+												단가
+											</th>
+											<th
+												class="px-4 py-3 text-right text-xs font-semibold text-gray-300 sm:text-sm"
+											>
+												금액
+											</th>
+											<th
+												class="px-4 py-3 text-left text-xs font-semibold text-gray-300 sm:text-sm"
+											>
+												메모
+											</th>
+											<th
+												class="px-4 py-3 text-center text-xs font-semibold text-gray-300 sm:text-sm"
+											>
+												작업
+											</th>
 										</tr>
-									{:else}
+									</thead>
+									<tbody>
 										{#each sortedEntries() as entry}
 											<tr class="border-b border-white/5 transition-colors hover:bg-white/5">
 												<td class="px-4 py-3 text-white">
@@ -546,10 +627,10 @@
 												</td>
 											</tr>
 										{/each}
-									{/if}
-								</tbody>
-							</table>
-						</div>
+									</tbody>
+								</table>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>
