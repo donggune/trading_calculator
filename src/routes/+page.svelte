@@ -1,317 +1,367 @@
 <script lang="ts">
-	let ticker = $state('NVDL');
-	let buyPrice = $state(100);
-	let quantity = $state(50);
-	let rate = $state<number | undefined>(8);
-	let profit = $state<number | undefined>(undefined);
-	let lastModified = $state<'rate' | 'profit'>('rate');
+	import { onMount } from 'svelte';
+	import { supabase } from '$lib/supabaseClient';
+	import LineChart from '$lib/components/LineChart.svelte';
+	import PriceCard from '$lib/components/PriceCard.svelte';
+	import type { FinancialPrice } from '$lib/types';
 
-	// 사용된 상승률 계산 (수익금 입력 시 역계산)
-	const usedRate = $derived(() => {
-		if (lastModified === 'profit' && profit && profit > 0) {
-			const q1 = Math.round(quantity * 0.5);
-			if (q1 > 0 && buyPrice > 0) {
-				return (profit / (q1 * buyPrice)) * 100;
-			}
+	let loading = $state(true);
+	let error = $state<string | null>(null);
+	let latestPrices = $state<FinancialPrice[]>([]);
+	let historicalData = $state<{ [key: string]: FinancialPrice[] }>({});
+
+	// 최신 가격 데이터 가져오기
+	async function fetchLatestPrices() {
+		try {
+			const { data, error: fetchError } = await supabase
+				.from('financial_dashboard_prices')
+				.select('*')
+				.order('updated_at', { ascending: false })
+				.limit(100);
+
+			if (fetchError) throw fetchError;
+
+			// 각 심볼의 최신 데이터만 가져오기
+			const latest = new Map<string, FinancialPrice>();
+			data?.forEach((item) => {
+				const key = `${item.symbol}-${item.asset_type}`;
+				if (!latest.has(key)) {
+					latest.set(key, item);
+				}
+			});
+
+			latestPrices = Array.from(latest.values());
+		} catch (e) {
+			error = e instanceof Error ? e.message : '데이터를 불러오는데 실패했습니다.';
 		}
-		return rate || 0;
-	});
-
-	// 기본 상승 단위 (Δ)
-	const delta = $derived(buyPrice * (usedRate() / 100));
-
-	// 수량 분할
-	const q1 = $derived(Math.round(quantity * 0.5));
-	const q2 = $derived(Math.round(quantity * 0.25));
-	const q3 = $derived(Math.round(quantity * 0.125));
-	const q4 = $derived(quantity - q1 - q2 - q3);
-
-	// 가격 계산
-	const p0 = $derived(buyPrice);
-	const p1 = $derived(buyPrice + delta * 1);
-	const p2 = $derived(buyPrice + delta * 3);
-	const p3 = $derived(buyPrice + delta * 7);
-	const p4 = $derived(buyPrice + delta * 10.5);
-
-	// 테이블 데이터
-	const rows = $derived(() => {
-		if (buyPrice <= 0 || quantity <= 0 || usedRate() <= 0) {
-			return [];
-		}
-
-		return [
-			{
-				type: '매수',
-				qty: quantity,
-				price: p0,
-				amount: quantity * p0,
-				profit: null,
-				profitRate: null,
-				class: 'buy-row'
-			},
-			{
-				type: '1차매도',
-				qty: q1,
-				price: p1,
-				amount: q1 * p1,
-				profit: q1 * (p1 - p0),
-				profitRate: ((p1 - p0) / p0) * 100,
-				class: 'sell-row'
-			},
-			{
-				type: '2차매도',
-				qty: q2,
-				price: p2,
-				amount: q2 * p2,
-				profit: q2 * (p2 - p0),
-				profitRate: ((p2 - p0) / p0) * 100,
-				class: 'sell-row'
-			},
-			{
-				type: '3차매도',
-				qty: q3,
-				price: p3,
-				amount: q3 * p3,
-				profit: q3 * (p3 - p0),
-				profitRate: ((p3 - p0) / p0) * 100,
-				class: 'sell-row'
-			},
-			{
-				type: '4차매도',
-				qty: q4,
-				price: p4,
-				amount: q4 * p4,
-				profit: q4 * (p4 - p0),
-				profitRate: ((p4 - p0) / p0) * 100,
-				class: 'sell-row'
-			}
-		];
-	});
-
-	// 요약 데이터
-	const totalInvest = $derived(rows().length > 0 ? rows()[0].amount : 0);
-	const totalReturn = $derived(
-		rows().length > 0
-			? rows()
-					.slice(1)
-					.reduce((sum, row) => sum + row.amount, 0)
-			: 0
-	);
-	const netProfit = $derived(totalReturn - totalInvest);
-	const totalProfitRate = $derived(totalInvest > 0 ? (netProfit / totalInvest) * 100 : 0);
-
-	function handleRateInput() {
-		lastModified = 'rate';
-		profit = undefined;
 	}
 
-	function handleProfitInput() {
-		lastModified = 'profit';
-		rate = undefined;
+	// 히스토리 데이터 가져오기 (최근 30일)
+	async function fetchHistoricalData() {
+		try {
+			const { data, error: fetchError } = await supabase
+				.from('financial_dashboard_prices')
+				.select('*')
+				.order('updated_at', { ascending: true });
+
+			if (fetchError) throw fetchError;
+
+			// 심볼별로 그룹화
+			const grouped: { [key: string]: FinancialPrice[] } = {};
+			data?.forEach((item) => {
+				const key = item.symbol;
+				if (!grouped[key]) {
+					grouped[key] = [];
+				}
+				grouped[key].push(item);
+			});
+
+			historicalData = grouped;
+		} catch (e) {
+			error = e instanceof Error ? e.message : '히스토리 데이터를 불러오는데 실패했습니다.';
+		}
 	}
+
+	// 차트 데이터 준비
+	const goldChartData = $derived(() => {
+		const data = historicalData['XAU'] || [];
+		return {
+			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
+			datasets: [
+				{
+					label: 'Gold (XAU)',
+					data: data.map((d) => Number(d.price)),
+					borderColor: 'rgb(255, 193, 7)',
+					backgroundColor: 'rgba(255, 193, 7, 0.1)',
+					fill: true
+				}
+			]
+		};
+	});
+
+	const nasdaqChartData = $derived(() => {
+		const data = historicalData['NDX'] || [];
+		return {
+			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
+			datasets: [
+				{
+					label: 'NASDAQ-100 (NDX)',
+					data: data.map((d) => Number(d.price)),
+					borderColor: 'rgb(59, 130, 246)',
+					backgroundColor: 'rgba(59, 130, 246, 0.1)',
+					fill: true
+				}
+			]
+		};
+	});
+
+	const dollarIndexChartData = $derived(() => {
+		const data = historicalData['DXY'] || [];
+		return {
+			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
+			datasets: [
+				{
+					label: 'U.S. Dollar Index (DXY)',
+					data: data.map((d) => Number(d.price)),
+					borderColor: 'rgb(16, 185, 129)',
+					backgroundColor: 'rgba(16, 185, 129, 0.1)',
+					fill: true
+				}
+			]
+		};
+	});
+
+	onMount(async () => {
+		loading = true;
+		await Promise.all([fetchLatestPrices(), fetchHistoricalData()]);
+		loading = false;
+	});
 </script>
 
-<svelte:head>
-	<title>분할 익절 계산기</title>
-</svelte:head>
-
-<div class="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-5">
-	<div class="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-2xl md:p-12">
-		<h1 class="mb-3 text-center text-4xl font-bold text-[#667eea] md:text-5xl">
-			📊 분할 익절 계산기
-		</h1>
-		<p class="mb-10 text-center text-lg text-gray-600">
-			매수가, 수량, 초기 상승률을 입력하면 자동으로 4단계 분할 익절 계획을 생성합니다
-		</p>
-
-		<!-- 입력 섹션 -->
-		<div class="mb-8 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 p-8 shadow-sm">
-			<div class="space-y-6">
-				<div>
-					<label for="ticker" class="mb-2 block text-lg font-semibold text-gray-700">
-						종목명
-					</label>
-					<input
-						type="text"
-						id="ticker"
-						bind:value={ticker}
-						placeholder="예: NVDL, TSLL, TQQQ"
-						class="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-lg transition-colors focus:border-[#667eea] focus:outline-none"
-					/>
+<div class="dashboard">
+	<header class="dashboard-header">
+		<div class="header-content">
+			<h1>📊 BullGaze Dashboard</h1>
+			<p>실시간 시장 분석 대시보드</p>
+			<div class="header-stats">
+				<div class="stat-item">
+					<span class="stat-label">실시간</span>
+					<span class="stat-value">업데이트 중</span>
 				</div>
-
-				<div>
-					<label for="buyPrice" class="mb-2 block text-lg font-semibold text-gray-700">
-						매수가 ($)
-					</label>
-					<input
-						type="number"
-						id="buyPrice"
-						bind:value={buyPrice}
-						placeholder="예: 100"
-						step="0.01"
-						class="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-lg transition-colors focus:border-[#667eea] focus:outline-none"
-					/>
-				</div>
-
-				<div>
-					<label for="quantity" class="mb-2 block text-lg font-semibold text-gray-700">
-						매수 수량
-					</label>
-					<input
-						type="number"
-						id="quantity"
-						bind:value={quantity}
-						placeholder="예: 50"
-						step="1"
-						class="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-lg transition-colors focus:border-[#667eea] focus:outline-none"
-					/>
-				</div>
-
-				<div>
-					<label for="rate" class="mb-2 block text-lg font-semibold text-gray-700">
-						초기 상승률 (%)
-					</label>
-					<input
-						type="number"
-						id="rate"
-						bind:value={rate}
-						oninput={handleRateInput}
-						placeholder="예: 8 (권장: 4~9%)"
-						step="0.01"
-						class="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-lg transition-colors focus:border-[#667eea] focus:outline-none"
-					/>
-					<p class="mt-2 text-sm text-gray-500">또는 아래 초기 수익금을 입력하세요</p>
-				</div>
-
-				<div>
-					<label for="profit" class="mb-2 block text-lg font-semibold text-gray-700">
-						또는 초기 수익금 ($)
-					</label>
-					<input
-						type="number"
-						id="profit"
-						bind:value={profit}
-						oninput={handleProfitInput}
-						placeholder="예: 202.86"
-						step="0.01"
-						class="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-lg transition-colors focus:border-[#667eea] focus:outline-none"
-					/>
-					<p class="mt-2 text-sm text-gray-500">1차 매도에서 원하는 수익금 (선택사항)</p>
+				<div class="stat-item">
+					<span class="stat-label">데이터</span>
+					<span class="stat-value">{latestPrices.length}개</span>
 				</div>
 			</div>
 		</div>
+	</header>
 
-		<!-- 계산 정보 -->
-		<div class="mb-8 rounded-xl border-l-4 border-blue-500 bg-blue-50 p-6">
-			<div class="mb-3 flex justify-between text-lg">
-				<span class="font-semibold text-gray-800">사용된 초기 상승률:</span>
-				<span class="font-bold text-blue-600">{usedRate().toFixed(2)}%</span>
-			</div>
-			<div class="flex justify-between text-lg">
-				<span class="font-semibold text-gray-800">Δ (기본 상승 단위):</span>
-				<span class="font-bold text-blue-600">${delta.toFixed(2)}</span>
-			</div>
+	{#if loading}
+		<div class="loading">
+			<div class="spinner"></div>
+			<p>데이터를 불러오는 중...</p>
 		</div>
-
-		<!-- 테이블 -->
-		<div class="mb-8 overflow-x-auto rounded-xl shadow-lg">
-			<table class="w-full border-collapse">
-				<thead>
-					<tr class="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white">
-						<th class="px-4 py-4 text-center">종목</th>
-						<th class="px-4 py-4 text-center">매매 구분</th>
-						<th class="px-4 py-4 text-center">수량</th>
-						<th class="px-4 py-4 text-center">단가(달러)</th>
-						<th class="px-4 py-4 text-center">금액</th>
-						<th class="px-4 py-4 text-center">수익금</th>
-						<th class="px-4 py-4 text-center">수익률</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#if rows().length === 0}
-						<tr>
-							<td colspan="7" class="py-8 text-center text-gray-400"> 위의 입력란을 채워주세요 </td>
-						</tr>
-					{:else}
-						{#each rows() as row}
-							<tr
-								class="border-b border-gray-200 transition-colors hover:bg-blue-50 {row.class ===
-								'buy-row'
-									? 'bg-orange-50 font-semibold'
-									: row.class === 'sell-row'
-										? 'bg-green-50'
-										: ''}"
-							>
-								<td class="px-4 py-4 text-center">{ticker}</td>
-								<td class="px-4 py-4 text-center font-bold">{row.type}</td>
-								<td class="px-4 py-4 text-center">{row.qty}</td>
-								<td class="px-4 py-4 text-center">${row.price.toFixed(2)}</td>
-								<td class="px-4 py-4 text-center">${row.amount.toFixed(2)}</td>
-								<td class="px-4 py-4 text-center">
-									{#if row.profit !== null}
-										<span class="font-bold text-green-600">${row.profit.toFixed(2)}</span>
-									{:else}
-										-
-									{/if}
-								</td>
-								<td class="px-4 py-4 text-center">
-									{#if row.profitRate !== null}
-										{row.profitRate.toFixed(2)}%
-									{:else}
-										-
-									{/if}
-								</td>
-							</tr>
-						{/each}
-
-						<!-- 합계 행 -->
-						<tr class="bg-yellow-100 text-lg font-bold">
-							<td colspan="2" class="px-4 py-4 text-center">【합계】</td>
-							<td class="px-4 py-4 text-center">{quantity}</td>
-							<td class="px-4 py-4 text-center">-</td>
-							<td class="px-4 py-4 text-center">${totalReturn.toFixed(2)}</td>
-							<td class="px-4 py-4 text-center">
-								<span class={netProfit >= 0 ? 'text-green-600' : 'text-red-600'}>
-									${netProfit.toFixed(2)}
-								</span>
-							</td>
-							<td class="px-4 py-4 text-center">
-								<span class={netProfit >= 0 ? 'text-green-600' : 'text-red-600'}>
-									{totalProfitRate.toFixed(2)}%
-								</span>
-							</td>
-						</tr>
-					{/if}
-				</tbody>
-			</table>
+	{:else if error}
+		<div class="error">
+			<p>❌ {error}</p>
 		</div>
+	{:else}
+		<!-- 가격 카드 섹션 -->
+		<section class="price-cards">
+			{#each latestPrices as price}
+				<PriceCard
+					name={price.name}
+					symbol={price.symbol}
+					price={Number(price.price)}
+					changePercent={Number(price.change_percent || 0)}
+					currency={price.currency}
+				/>
+			{/each}
+		</section>
 
-		<!-- 요약 카드 -->
-		<div class="grid gap-6 md:grid-cols-3">
-			<div
-				class="rounded-2xl bg-gradient-to-br from-[#f093fb] to-[#f5576c] p-8 text-center text-white shadow-lg"
-			>
-				<div class="mb-3 text-sm opacity-90">총 투자금</div>
-				<div class="text-4xl font-bold">${totalInvest.toFixed(2)}</div>
-			</div>
-
-			<div
-				class="rounded-2xl bg-gradient-to-br from-[#4facfe] to-[#00f2fe] p-8 text-center text-white shadow-lg"
-			>
-				<div class="mb-3 text-sm opacity-90">총 회수금</div>
-				<div class="text-4xl font-bold">${totalReturn.toFixed(2)}</div>
-			</div>
-
-			<div
-				class="rounded-2xl bg-gradient-to-br from-[#43e97b] to-[#38f9d7] p-8 text-center text-white shadow-lg"
-			>
-				<div class="mb-3 text-sm opacity-90">순수익</div>
-				<div class="text-4xl font-bold">
-					${netProfit.toFixed(2)}
-					<div class="mt-1 text-lg">({totalProfitRate.toFixed(2)}%)</div>
+		<!-- 차트 섹션 -->
+		<section class="charts">
+			{#if historicalData['XAU']?.length}
+				<div class="chart-wrapper">
+					<LineChart
+						labels={goldChartData().labels}
+						datasets={goldChartData().datasets}
+						title="금 (XAU) 가격 추이"
+					/>
 				</div>
-			</div>
-		</div>
-	</div>
+			{/if}
+
+			{#if historicalData['NDX']?.length}
+				<div class="chart-wrapper">
+					<LineChart
+						labels={nasdaqChartData().labels}
+						datasets={nasdaqChartData().datasets}
+						title="나스닥-100 (NDX) 지수 추이"
+					/>
+				</div>
+			{/if}
+
+			{#if historicalData['DXY']?.length}
+				<div class="chart-wrapper">
+					<LineChart
+						labels={dollarIndexChartData().labels}
+						datasets={dollarIndexChartData().datasets}
+						title="달러 인덱스 (DXY) 추이"
+					/>
+				</div>
+			{/if}
+		</section>
+	{/if}
 </div>
+
+<style>
+	.dashboard {
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 2rem;
+		min-height: 100vh;
+		background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+	}
+
+	.dashboard-header {
+		text-align: center;
+		margin-bottom: 3rem;
+		position: relative;
+	}
+
+	.header-content {
+		position: relative;
+		z-index: 2;
+	}
+
+	.dashboard-header h1 {
+		font-size: 3rem;
+		font-weight: 800;
+		background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		margin-bottom: 0.5rem;
+		text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+	}
+
+	.dashboard-header p {
+		font-size: 1.25rem;
+		color: rgba(255, 255, 255, 0.7);
+		margin-bottom: 2rem;
+	}
+
+	.header-stats {
+		display: flex;
+		justify-content: center;
+		gap: 2rem;
+		margin-top: 1.5rem;
+	}
+
+	.stat-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 1rem 1.5rem;
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 12px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(10px);
+	}
+
+	.stat-label {
+		font-size: 0.875rem;
+		color: rgba(255, 255, 255, 0.6);
+		margin-bottom: 0.25rem;
+	}
+
+	.stat-value {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: #60a5fa;
+	}
+
+	.loading,
+	.error {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 400px;
+		background: rgba(255, 255, 255, 0.03);
+		border-radius: 16px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(10px);
+	}
+
+	.spinner {
+		width: 60px;
+		height: 60px;
+		border: 4px solid rgba(255, 255, 255, 0.1);
+		border-top-color: #60a5fa;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		margin-bottom: 1rem;
+		box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.error p {
+		color: #f87171;
+		font-size: 1.125rem;
+		font-weight: 500;
+		text-align: center;
+	}
+
+	.price-cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: 2rem;
+		margin-bottom: 3rem;
+	}
+
+	.charts {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.chart-wrapper {
+		background: rgba(255, 255, 255, 0.03);
+		border-radius: 16px;
+		padding: 2rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(10px);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		transition: all 0.3s ease;
+	}
+
+	.chart-wrapper:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+		border-color: rgba(255, 255, 255, 0.2);
+	}
+
+	@media (max-width: 768px) {
+		.dashboard {
+			padding: 1rem;
+		}
+
+		.dashboard-header h1 {
+			font-size: 2.5rem;
+		}
+
+		.header-stats {
+			flex-direction: column;
+			gap: 1rem;
+			align-items: center;
+		}
+
+		.stat-item {
+			width: 200px;
+		}
+
+		.price-cards {
+			grid-template-columns: 1fr;
+		}
+
+		.chart-wrapper {
+			padding: 1.5rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.dashboard-header h1 {
+			font-size: 2rem;
+		}
+
+		.dashboard-header p {
+			font-size: 1rem;
+		}
+	}
+</style>
