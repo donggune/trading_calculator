@@ -174,36 +174,40 @@
 		></div>
 	</div>
 
-	<div class="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 xl:max-w-none xl:px-12">
+	<div
+		class="relative mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:max-w-none xl:px-12"
+	>
 		<!-- 헤더 -->
-		<div class="mb-6 text-center sm:mb-8">
+		<div class="mb-4 text-center sm:mb-6 md:mb-8">
 			<h1
-				class="mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:mb-4 sm:text-3xl lg:text-4xl"
+				class="mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-xl font-bold tracking-tight text-transparent sm:mb-3 sm:text-2xl md:mb-4 md:text-3xl lg:text-4xl"
 			>
 				분할 익절 계산기
 			</h1>
-			<p class="px-4 text-sm text-gray-300 sm:text-base">
+			<p class="px-2 text-xs text-gray-300 sm:px-4 sm:text-sm md:text-base">
 				매수가, 수량, 초기 상승률을 입력하면 자동으로 4단계 분할 익절 계획을 생성합니다
 			</p>
 		</div>
 
-		<div class="grid gap-4 sm:gap-6 lg:grid-cols-12 lg:gap-8 xl:gap-12">
+		<div class="grid gap-4 sm:gap-6 md:gap-8 lg:grid-cols-12 lg:gap-8 xl:gap-12">
 			<!-- 입력 섹션 -->
 			<div class="lg:col-span-4 xl:col-span-3">
 				<div class="space-y-4 sm:space-y-6 xl:space-y-8">
 					<!-- 입력 카드 -->
 					<div
-						class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl sm:p-6 xl:p-8"
+						class="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl sm:p-4 md:p-6 xl:p-8"
 					>
-						<h2 class="mb-4 text-lg font-bold text-white sm:mb-6 sm:text-xl xl:text-2xl">
+						<h2
+							class="mb-3 text-base font-bold text-white sm:mb-4 sm:text-lg md:mb-6 md:text-xl xl:text-2xl"
+						>
 							📝 입력 정보
 						</h2>
 
-						<div class="space-y-4 sm:space-y-5">
+						<div class="space-y-3 sm:space-y-4 md:space-y-5">
 							<div>
 								<label
 									for="ticker"
-									class="mb-2 block text-sm font-medium text-gray-300 xl:text-base"
+									class="mb-1.5 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm xl:text-base"
 								>
 									종목명
 								</label>
@@ -219,7 +223,7 @@
 							<div>
 								<label
 									for="buyPrice"
-									class="mb-2 block text-sm font-medium text-gray-300 xl:text-base"
+									class="mb-1.5 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm xl:text-base"
 								>
 									매수가 ($)
 								</label>
@@ -236,7 +240,7 @@
 							<div>
 								<label
 									for="quantity"
-									class="mb-2 block text-sm font-medium text-gray-300 xl:text-base"
+									class="mb-1.5 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm xl:text-base"
 								>
 									매수 수량
 								</label>
@@ -251,10 +255,13 @@
 							</div>
 
 							<div>
-								<label for="rate" class="mb-2 block text-sm font-medium text-gray-300 xl:text-base">
+								<label
+									for="rate"
+									class="mb-1.5 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm xl:text-base"
+								>
 									초기 상승률 (%)
 									<span
-										class="ml-2 inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-1 text-xs font-medium text-blue-400 ring-1 ring-blue-500/30 ring-inset xl:text-sm"
+										class="ml-1 inline-flex items-center rounded-full bg-blue-500/20 px-2 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-blue-500/30 ring-inset sm:ml-2 sm:px-2.5 sm:py-1 xl:text-sm"
 									>
 										권장: 4~9%
 									</span>
@@ -282,7 +289,7 @@
 							<div>
 								<label
 									for="profit"
-									class="mb-2 block text-sm font-medium text-gray-300 xl:text-base"
+									class="mb-1.5 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm xl:text-base"
 								>
 									초기 수익금 ($)
 								</label>
@@ -318,31 +325,36 @@
 
 					<!-- 요약 카드 -->
 					<div
-						class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-4 backdrop-blur-xl sm:p-6 xl:p-8"
+						class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-3 backdrop-blur-xl sm:p-4 md:p-6 xl:p-8"
 					>
-						<h3 class="mb-6 text-lg font-bold text-white xl:text-xl">💰 수익 요약</h3>
-						<div class="space-y-4">
-							<div class="flex justify-between text-sm">
+						<h3
+							class="mb-3 text-base font-bold text-white sm:mb-4 sm:text-lg md:mb-6 md:text-xl xl:text-xl"
+						>
+							💰 수익 요약
+						</h3>
+						<div class="space-y-3 sm:space-y-4">
+							<div class="flex justify-between text-xs sm:text-sm">
 								<span class="text-gray-400">총 투자금</span>
 								<span class="font-mono font-bold text-white">${totalInvest.toFixed(2)}</span>
 							</div>
-							<div class="flex justify-between text-sm">
+							<div class="flex justify-between text-xs sm:text-sm">
 								<span class="text-gray-400">총 회수금</span>
 								<span class="font-mono font-bold text-blue-400">${totalReturn.toFixed(2)}</span>
 							</div>
-							<div class="border-t border-white/10 pt-4">
-								<div class="flex justify-between">
-									<span class="font-medium text-white">순수익</span>
+							<div class="border-t border-white/10 pt-3 sm:pt-4">
+								<div class="flex items-center justify-between">
+									<span class="text-xs font-medium text-white sm:text-sm">순수익</span>
 									<div class="text-right">
 										<div
-											class="font-mono text-xl font-bold {netProfit >= 0
+											class="font-mono text-sm font-bold sm:text-base md:text-lg xl:text-xl {netProfit >=
+											0
 												? 'text-emerald-400'
 												: 'text-red-400'}"
 										>
 											${netProfit.toFixed(2)}
 										</div>
 										<div
-											class="font-mono text-sm {netProfit >= 0
+											class="font-mono text-xs sm:text-sm {netProfit >= 0
 												? 'text-emerald-400'
 												: 'text-red-400'}"
 										>
@@ -363,72 +375,166 @@
 					<div
 						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl xl:shadow-2xl"
 					>
-						<div class="overflow-x-auto">
-							<table class="w-full text-xs sm:text-sm">
-								<thead class="border-b border-white/10 bg-white/5">
-									<tr>
-										<th
-											class="px-2 py-2 text-left text-xs font-semibold text-gray-300 sm:px-4 sm:py-4 sm:text-sm"
-											>종목</th
+						{#if rows().length === 0}
+							<div class="py-8 text-center text-xs text-gray-500 sm:py-16 sm:text-sm">
+								입력란을 채워주세요
+							</div>
+						{:else}
+							<!-- 모바일: 카드 형태 -->
+							<div class="block lg:hidden">
+								<div class="space-y-3 p-3 sm:p-4">
+									{#each rows() as row}
+										<div
+											class="rounded-xl border border-white/10 bg-white/5 p-3 {getRowBgClass(
+												row.class
+											)}"
 										>
-										<th
-											class="px-2 py-2 text-left text-xs font-semibold text-gray-300 sm:px-4 sm:py-4 sm:text-sm"
-											>매매</th
-										>
-										<th
-											class="px-2 py-2 text-center text-xs font-semibold text-gray-300 sm:px-4 sm:py-4 sm:text-sm"
-											>수량</th
-										>
-										<th
-											class="px-2 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-4 sm:text-sm"
-											>단가</th
-										>
-										<th
-											class="px-2 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-4 sm:text-sm"
-											>금액</th
-										>
-										<th
-											class="px-2 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-4 sm:text-sm"
-											>수익금</th
-										>
-										<th
-											class="px-2 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-4 sm:text-sm"
-											>수익률</th
-										>
-									</tr>
-								</thead>
-								<tbody>
-									{#if rows().length === 0}
+											<div class="mb-2 flex items-start justify-between">
+												<div class="flex items-center gap-2">
+													<span
+														class="inline-flex items-center rounded-lg border border-white/20 bg-white/10 px-2 py-1 font-mono text-xs font-medium text-white"
+													>
+														{ticker}
+													</span>
+													<span class="text-xs font-semibold text-white">{row.type}</span>
+													{#if row.multiplier}
+														<span
+															class="inline-flex items-center rounded-full bg-blue-500/20 px-1.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30 ring-inset"
+														>
+															{row.multiplier}
+														</span>
+													{/if}
+												</div>
+											</div>
+											<div class="grid grid-cols-2 gap-2 text-xs">
+												<div>
+													<span class="text-gray-400">수량:</span>
+													<span class="ml-1 font-mono text-white">{row.qty}</span>
+												</div>
+												<div>
+													<span class="text-gray-400">단가:</span>
+													<span class="ml-1 font-mono text-white">${row.price.toFixed(2)}</span>
+												</div>
+											</div>
+											<div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+												<div>
+													<span class="text-gray-400">금액:</span>
+													<span class="ml-1 font-mono text-white">${row.amount.toFixed(2)}</span>
+												</div>
+												{#if row.profit !== null}
+													<div>
+														<span class="text-gray-400">수익금:</span>
+														<span class="ml-1 font-mono font-bold text-emerald-400"
+															>${row.profit.toFixed(2)}</span
+														>
+													</div>
+												{/if}
+											</div>
+											{#if row.profitRate !== null}
+												<div class="mt-2">
+													<span class="text-xs text-gray-400">수익률:</span>
+													<span class="ml-1 font-mono text-xs font-bold text-emerald-400"
+														>{row.profitRate.toFixed(2)}%</span
+													>
+												</div>
+											{/if}
+										</div>
+									{/each}
+
+									<!-- 합계 카드 -->
+									<div
+										class="rounded-xl border border-yellow-500/20 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 p-3"
+									>
+										<div class="mb-2 text-center font-bold text-white">【합계】</div>
+										<div class="grid grid-cols-2 gap-2 text-xs">
+											<div>
+												<span class="text-gray-400">총 수량:</span>
+												<span class="ml-1 font-mono text-white">{quantity}</span>
+											</div>
+											<div>
+												<span class="text-gray-400">총 회수금:</span>
+												<span class="ml-1 font-mono text-white">${totalReturn.toFixed(2)}</span>
+											</div>
+										</div>
+										<div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+											<div>
+												<span class="text-gray-400">순수익:</span>
+												<span
+													class="ml-1 font-mono font-bold {netProfit >= 0
+														? 'text-emerald-400'
+														: 'text-red-400'}">${netProfit.toFixed(2)}</span
+												>
+											</div>
+											<div>
+												<span class="text-gray-400">수익률:</span>
+												<span
+													class="ml-1 font-mono font-bold {netProfit >= 0
+														? 'text-emerald-400'
+														: 'text-red-400'}">{totalProfitRate.toFixed(2)}%</span
+												>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- 데스크톱: 테이블 형태 -->
+							<div class="hidden overflow-x-auto lg:block">
+								<table class="w-full text-xs sm:text-sm">
+									<thead class="border-b border-white/10 bg-white/5">
 										<tr>
-											<td
-												colspan="7"
-												class="py-8 text-center text-xs text-gray-500 sm:py-16 sm:text-sm"
+											<th
+												class="px-3 py-2 text-left text-xs font-semibold text-gray-300 sm:px-4 sm:py-3 sm:text-sm"
+												>종목</th
 											>
-												입력란을 채워주세요
-											</td>
+											<th
+												class="px-3 py-2 text-left text-xs font-semibold text-gray-300 sm:px-4 sm:py-3 sm:text-sm"
+												>매매</th
+											>
+											<th
+												class="px-3 py-2 text-center text-xs font-semibold text-gray-300 sm:px-4 sm:py-3 sm:text-sm"
+												>수량</th
+											>
+											<th
+												class="px-3 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-3 sm:text-sm"
+												>단가</th
+											>
+											<th
+												class="px-3 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-3 sm:text-sm"
+												>금액</th
+											>
+											<th
+												class="px-3 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-3 sm:text-sm"
+												>수익금</th
+											>
+											<th
+												class="px-3 py-2 text-right text-xs font-semibold text-gray-300 sm:px-4 sm:py-3 sm:text-sm"
+												>수익률</th
+											>
 										</tr>
-									{:else}
+									</thead>
+									<tbody>
 										{#each rows() as row}
 											<tr
 												class="border-b border-white/5 transition-colors hover:bg-white/5 {getRowBgClass(
 													row.class
 												)}"
 											>
-												<td class="px-2 py-2 sm:px-4 sm:py-4">
+												<td class="px-3 py-2 sm:px-4 sm:py-3">
 													<span
-														class="inline-flex items-center rounded-lg border border-white/20 bg-white/10 px-2 py-1 font-mono text-xs font-medium text-white sm:px-3 sm:py-1.5"
+														class="inline-flex items-center rounded-lg border border-white/20 bg-white/10 px-2 py-1 font-mono text-xs font-medium text-white"
 													>
 														{ticker}
 													</span>
 												</td>
-												<td class="px-2 py-2 sm:px-4 sm:py-4">
+												<td class="px-3 py-2 sm:px-4 sm:py-3">
 													<div class="flex items-center gap-1 sm:gap-2">
 														<span class="text-xs font-semibold text-white sm:text-sm"
 															>{row.type}</span
 														>
 														{#if row.multiplier}
 															<span
-																class="inline-flex items-center rounded-full bg-blue-500/20 px-1.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30 ring-inset sm:px-2.5 sm:py-1"
+																class="inline-flex items-center rounded-full bg-blue-500/20 px-1.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30 ring-inset"
 															>
 																{row.multiplier}
 															</span>
@@ -436,21 +542,21 @@
 													</div>
 												</td>
 												<td
-													class="px-2 py-2 text-center font-mono text-xs text-white sm:px-4 sm:py-4 sm:text-sm"
+													class="px-3 py-2 text-center font-mono text-xs text-white sm:px-4 sm:py-3 sm:text-sm"
 												>
 													{row.qty}
 												</td>
 												<td
-													class="px-2 py-2 text-right font-mono text-xs text-white sm:px-4 sm:py-4 sm:text-sm"
+													class="px-3 py-2 text-right font-mono text-xs text-white sm:px-4 sm:py-3 sm:text-sm"
 												>
 													${row.price.toFixed(2)}
 												</td>
 												<td
-													class="px-2 py-2 text-right font-mono text-xs text-white sm:px-4 sm:py-4 sm:text-sm"
+													class="px-3 py-2 text-right font-mono text-xs text-white sm:px-4 sm:py-3 sm:text-sm"
 												>
 													${row.amount.toFixed(2)}
 												</td>
-												<td class="px-2 py-2 text-right sm:px-4 sm:py-4">
+												<td class="px-3 py-2 text-right sm:px-4 sm:py-3">
 													{#if row.profit !== null}
 														<span class="font-mono text-xs font-bold text-emerald-400 sm:text-sm">
 															${row.profit.toFixed(2)}
@@ -459,7 +565,7 @@
 														<span class="text-gray-500">-</span>
 													{/if}
 												</td>
-												<td class="px-2 py-2 text-right sm:px-4 sm:py-4">
+												<td class="px-3 py-2 text-right sm:px-4 sm:py-3">
 													{#if row.profitRate !== null}
 														<span class="font-mono text-xs font-bold text-emerald-400 sm:text-sm">
 															{row.profitRate.toFixed(2)}%
@@ -473,17 +579,17 @@
 
 										<!-- 합계 행 -->
 										<tr class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 font-bold">
-											<td colspan="2" class="px-2 py-2 text-center text-white sm:px-4 sm:py-4"
+											<td colspan="2" class="px-3 py-2 text-center text-white sm:px-4 sm:py-3"
 												>【합계】</td
 											>
-											<td class="px-2 py-2 text-center font-mono text-white sm:px-4 sm:py-4"
+											<td class="px-3 py-2 text-center font-mono text-white sm:px-4 sm:py-3"
 												>{quantity}</td
 											>
-											<td class="px-2 py-2 text-right text-gray-500 sm:px-4 sm:py-4">-</td>
-											<td class="px-2 py-2 text-right font-mono text-white sm:px-4 sm:py-4">
+											<td class="px-3 py-2 text-right text-gray-500 sm:px-4 sm:py-3">-</td>
+											<td class="px-3 py-2 text-right font-mono text-white sm:px-4 sm:py-3">
 												${totalReturn.toFixed(2)}
 											</td>
-											<td class="px-2 py-2 text-right sm:px-4 sm:py-4">
+											<td class="px-3 py-2 text-right sm:px-4 sm:py-3">
 												<span
 													class="font-mono text-sm sm:text-lg {netProfit >= 0
 														? 'text-emerald-400'
@@ -492,7 +598,7 @@
 													${netProfit.toFixed(2)}
 												</span>
 											</td>
-											<td class="px-2 py-2 text-right sm:px-4 sm:py-4">
+											<td class="px-3 py-2 text-right sm:px-4 sm:py-3">
 												<span
 													class="font-mono text-sm sm:text-lg {netProfit >= 0
 														? 'text-emerald-400'
@@ -502,20 +608,22 @@
 												</span>
 											</td>
 										</tr>
-									{/if}
-								</tbody>
-							</table>
-						</div>
+									</tbody>
+								</table>
+							</div>
+						{/if}
 					</div>
 
 					<!-- 설명 카드 -->
 					<div
-						class="rounded-2xl border-l-4 border-blue-500 bg-blue-500/10 p-4 ring-1 ring-blue-500/20 ring-inset sm:p-6 xl:p-8"
+						class="rounded-2xl border-l-4 border-blue-500 bg-blue-500/10 p-3 ring-1 ring-blue-500/20 ring-inset sm:p-4 md:p-6 xl:p-8"
 					>
-						<h3 class="mb-3 text-base font-bold text-white sm:mb-4 sm:text-lg xl:text-xl">
+						<h3
+							class="mb-2 text-sm font-bold text-white sm:mb-3 sm:text-base md:mb-4 md:text-lg xl:text-xl"
+						>
 							💡 분할 익절 전략
 						</h3>
-						<div class="space-y-2 text-xs text-gray-300 sm:space-y-3 sm:text-sm">
+						<div class="space-y-1.5 text-xs text-gray-300 sm:space-y-2 sm:text-sm md:space-y-3">
 							<p>
 								• <strong class="text-white">50% (1Δ)</strong>: 초기 목표가 달성 시 절반 익절로 원금
 								회수
@@ -530,6 +638,6 @@
 				</div>
 			</div>
 		</div>
-		<div class="pb-16 sm:pb-20"></div>
+		<div class="pb-12 sm:pb-16 md:pb-20"></div>
 	</div>
 </div>
