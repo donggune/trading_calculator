@@ -4,6 +4,25 @@
 	import LineChart from '$lib/components/LineChart.svelte';
 	import PriceCard from '$lib/components/PriceCard.svelte';
 	import type { FinancialPrice } from '$lib/types';
+	import { page } from '$app/stores';
+
+	// SEO 메타 태그
+	$effect(() => {
+		page.title = 'BullGaze - 실시간 시장 대시보드';
+		page.description =
+			'실시간 금, 은, 암호화폐 가격을 확인하고 투자 분석을 시작하세요. 전문적인 시장 데이터와 차트 분석 도구를 제공합니다.';
+	});
+
+	// 구조화된 데이터
+	const structuredData = {
+		'@context': 'https://schema.org',
+		'@type': 'Dashboard',
+		name: 'BullGaze 실시간 시장 대시보드',
+		description: '실시간 금, 은, 암호화폐 가격 데이터와 차트 분석 도구',
+		url: 'https://bullgaze.com',
+		applicationCategory: 'FinanceApplication',
+		featureList: ['실시간 금 가격', '실시간 은 가격', '암호화폐 가격', '차트 분석', '시장 데이터']
+	};
 
 	let loading = $state(true);
 	let error = $state<string | null>(null);
@@ -117,6 +136,13 @@
 		loading = false;
 	});
 </script>
+
+<!-- 구조화된 데이터 -->
+<svelte:head>
+	<script type="application/ld+json">
+		{JSON.stringify(structuredData)}
+	</script>
+</svelte:head>
 
 <div class="dashboard">
 	<header class="dashboard-header">

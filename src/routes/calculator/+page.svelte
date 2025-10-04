@@ -1,4 +1,29 @@
 <script lang="ts">
+	import { page } from '$app/stores';
+
+	// SEO 메타 태그
+	$effect(() => {
+		page.title = '분할 익절 계산기 - BullGaze';
+		page.description =
+			'스마트한 분할 익절 전략으로 투자 수익을 극대화하세요. 매수가, 수량, 상승률을 입력하면 자동으로 4단계 분할 익절 계획을 생성합니다.';
+	});
+
+	// 구조화된 데이터
+	const structuredData = {
+		'@context': 'https://schema.org',
+		'@type': 'WebApplication',
+		name: 'BullGaze 분할 익절 계산기',
+		description: '스마트한 분할 익절 전략으로 투자 수익을 극대화하는 계산기',
+		url: 'https://bullgaze.com/calculator',
+		applicationCategory: 'FinanceApplication',
+		featureList: ['분할 익절 계산', '4단계 익절 전략', '수익률 계산', '투자 계획 생성'],
+		offers: {
+			'@type': 'Offer',
+			price: '0',
+			priceCurrency: 'USD'
+		}
+	};
+
 	let ticker = $state('NVDL');
 	let buyPrice = $state(100);
 	let quantity = $state(50);
@@ -122,8 +147,11 @@
 	}
 </script>
 
+<!-- 구조화된 데이터 -->
 <svelte:head>
-	<title>BullGaze - 분할 익절 계산기</title>
+	<script type="application/ld+json">
+		{JSON.stringify(structuredData)}
+	</script>
 </svelte:head>
 
 <div class="min-h-screen bg-black pb-24">

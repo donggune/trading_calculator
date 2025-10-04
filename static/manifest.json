@@ -1,0 +1,21 @@
+{
+	"name": "BullGaze - 투자 분석 도구",
+	"short_name": "BullGaze",
+	"description": "전문적인 투자 분석 도구. 분할 익절 계산기와 실시간 시장 대시보드",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#0f172a",
+	"theme_color": "#1f2937",
+	"orientation": "portrait-primary",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any maskable"
+		}
+	],
+	"categories": ["finance", "business", "productivity"],
+	"lang": "ko",
+	"dir": "ltr"
+}
