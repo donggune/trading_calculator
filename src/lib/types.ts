@@ -58,3 +58,32 @@ export interface TradingStats {
 	averageLoss: number;
 	profitFactor: number;
 }
+
+// 상관관계 분석 관련 타입들
+export interface CorrelationData {
+	asset1: string;
+	asset2: string;
+	correlation: number;
+	pValue?: number;
+}
+
+export interface CorrelationMatrix {
+	symbols: string[];
+	matrix: number[][];
+}
+
+export interface AssetComparison {
+	symbol: string;
+	name: string;
+	data: number[];
+	dates: string[];
+	normalizedData?: number[]; // 100 기준 정규화 데이터
+}
+
+export interface MarketInsight {
+	type: 'correlation' | 'trend' | 'volatility';
+	title: string;
+	description: string;
+	severity: 'high' | 'medium' | 'low';
+	relatedAssets: string[];
+}

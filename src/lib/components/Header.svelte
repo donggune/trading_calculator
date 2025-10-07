@@ -41,6 +41,14 @@
 					홈
 				</a>
 				<a
+					href="/analytics"
+					class="text-sm font-medium transition-colors {$page.url.pathname === '/analytics'
+						? 'text-blue-400'
+						: 'text-gray-300 hover:text-white'}"
+				>
+					분석
+				</a>
+				<a
 					href="/calculator"
 					class="text-sm font-medium transition-colors {$page.url.pathname === '/calculator'
 						? 'text-blue-400'
@@ -214,6 +222,16 @@
 							: 'text-gray-300 hover:bg-white/5 hover:text-white'}"
 					>
 						홈
+					</a>
+					<a
+						href="/analytics"
+						onclick={() => (showMobileMenu = false)}
+						class="rounded-lg px-3 py-2 text-sm font-medium transition-colors {$page.url
+							.pathname === '/analytics'
+							? 'bg-white/10 text-blue-400'
+							: 'text-gray-300 hover:bg-white/5 hover:text-white'}"
+					>
+						분석
 					</a>
 					<a
 						href="/calculator"
