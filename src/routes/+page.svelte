@@ -157,6 +157,18 @@
 		};
 	}
 
+	// 심볼별 현재 가격 가져오기 헬퍼 함수
+	function getCurrentPrice(symbol: string): number | undefined {
+		const priceData = latestPrices.find((p) => p.symbol === symbol);
+		return priceData ? Number(priceData.price) : undefined;
+	}
+
+	// 심볼별 통화 가져오기 헬퍼 함수
+	function getCurrency(symbol: string): string {
+		const priceData = latestPrices.find((p) => p.symbol === symbol);
+		return priceData?.currency || 'USD';
+	}
+
 	// 차트 데이터 준비
 	const goldChartData = $derived(() =>
 		createChartData('XAU', 'Gold (XAU)', 'rgb(255, 193, 7)', 'rgba(255, 193, 7, 0.1)')
@@ -459,6 +471,8 @@
 						labels={goldChartData().labels}
 						datasets={goldChartData().datasets}
 						title="금 (XAU) 가격 추이"
+						currentPrice={getCurrentPrice('XAU')}
+						currency={getCurrency('XAU')}
 					/>
 				</div>
 			{/if}
@@ -469,6 +483,8 @@
 						labels={sp500ChartData().labels}
 						datasets={sp500ChartData().datasets}
 						title="S&P 500 (SPX) 지수 추이"
+						currentPrice={getCurrentPrice('SPX')}
+						currency={getCurrency('SPX')}
 					/>
 				</div>
 			{/if}
@@ -479,6 +495,8 @@
 						labels={nasdaqChartData().labels}
 						datasets={nasdaqChartData().datasets}
 						title="나스닥-100 (NDX) 지수 추이"
+						currentPrice={getCurrentPrice('NDX')}
+						currency={getCurrency('NDX')}
 					/>
 				</div>
 			{/if}
@@ -489,6 +507,8 @@
 						labels={dollarIndexChartData().labels}
 						datasets={dollarIndexChartData().datasets}
 						title="달러 인덱스 (DXY) 추이"
+						currentPrice={getCurrentPrice('DXY')}
+						currency={getCurrency('DXY')}
 					/>
 				</div>
 			{/if}
@@ -499,6 +519,8 @@
 						labels={crudeOilChartData().labels}
 						datasets={crudeOilChartData().datasets}
 						title="원유 WTI (WTI) 가격 추이"
+						currentPrice={getCurrentPrice('WTI')}
+						currency={getCurrency('WTI')}
 					/>
 				</div>
 			{/if}
@@ -509,6 +531,8 @@
 						labels={nikkeiChartData().labels}
 						datasets={nikkeiChartData().datasets}
 						title="닛케이 225 (N225) 지수 추이"
+						currentPrice={getCurrentPrice('N225')}
+						currency={getCurrency('N225')}
 					/>
 				</div>
 			{/if}
@@ -519,6 +543,8 @@
 						labels={nasdaqFuturesChartData().labels}
 						datasets={nasdaqFuturesChartData().datasets}
 						title="나스닥-100 선물 (NQ) 추이"
+						currentPrice={getCurrentPrice('NQ')}
+						currency={getCurrency('NQ')}
 					/>
 				</div>
 			{/if}
@@ -529,6 +555,8 @@
 						labels={russell2000ChartData().labels}
 						datasets={russell2000ChartData().datasets}
 						title="러셀 2000 (RUT) 지수 추이"
+						currentPrice={getCurrentPrice('RUT')}
+						currency={getCurrency('RUT')}
 					/>
 				</div>
 			{/if}
@@ -539,6 +567,8 @@
 						labels={us10YearTreasuryChartData().labels}
 						datasets={us10YearTreasuryChartData().datasets}
 						title="미국 10년 국채 (TNX) 수익률 추이"
+						currentPrice={getCurrentPrice('TNX')}
+						currency={getCurrency('TNX')}
 					/>
 				</div>
 			{/if}
@@ -549,6 +579,8 @@
 						labels={usdKrwChartData().labels}
 						datasets={usdKrwChartData().datasets}
 						title="달러-원 (USD/KRW) 환율 추이"
+						currentPrice={getCurrentPrice('USDKRW')}
+						currency={getCurrency('USDKRW')}
 					/>
 				</div>
 			{/if}
@@ -559,6 +591,8 @@
 						labels={usdJpyChartData().labels}
 						datasets={usdJpyChartData().datasets}
 						title="달러-엔 (USD/JPY) 환율 추이"
+						currentPrice={getCurrentPrice('USDJPY')}
+						currency={getCurrency('USDJPY')}
 					/>
 				</div>
 			{/if}
@@ -569,6 +603,8 @@
 						labels={usdEurChartData().labels}
 						datasets={usdEurChartData().datasets}
 						title="달러-유로 (USD/EUR) 환율 추이"
+						currentPrice={getCurrentPrice('USDEUR')}
+						currency={getCurrency('USDEUR')}
 					/>
 				</div>
 			{/if}

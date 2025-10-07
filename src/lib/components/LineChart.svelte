@@ -36,9 +36,23 @@
 			fill?: boolean;
 		}[];
 		title?: string;
+		currentPrice?: number;
+		currency?: string;
 	}
 
-	let { labels, datasets, title = 'Chart' }: Props = $props();
+	let { labels, datasets, title = 'Chart', currentPrice, currency = 'USD' }: Props = $props();
+
+	// 현재가 포맷팅
+	const formattedCurrentPrice = $derived(
+		currentPrice !== undefined
+			? new Intl.NumberFormat('en-US', {
+					style: 'currency',
+					currency: currency,
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				}).format(currentPrice)
+			: ''
+	);
 
 	let canvas: HTMLCanvasElement;
 	let chart: Chart | null = null;
@@ -87,14 +101,7 @@
 						}
 					},
 					title: {
-						display: !!title,
-						text: title,
-						color: 'white',
-						font: {
-							size: 16,
-							weight: 'bold'
-						},
-						padding: 20
+						display: false
 					},
 					tooltip: {
 						backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -190,11 +197,51 @@
 	});
 </script>
 
-<div class="chart-container">
-	<canvas bind:this={canvas}></canvas>
+<div class="chart-wrapper">
+	{#if title}
+		<div class="chart-header">
+			<h3 class="chart-title">{title}</h3>
+			{#if formattedCurrentPrice}
+				<div class="current-price">{formattedCurrentPrice}</div>
+			{/if}
+		</div>
+	{/if}
+	<div class="chart-container">
+		<canvas bind:this={canvas}></canvas>
+	</div>
 </div>
 
 <style>
+	.chart-wrapper {
+		width: 100%;
+	}
+
+	.chart-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+		padding: 0 0.5rem;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.chart-title {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: white;
+		margin: 0;
+		line-height: 1.2;
+	}
+
+	.current-price {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #60a5fa;
+		text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+		white-space: nowrap;
+	}
+
 	.chart-container {
 		position: relative;
 		height: 400px;
@@ -220,6 +267,18 @@
 	}
 
 	@media (max-width: 768px) {
+		.chart-header {
+			padding: 0 0.25rem;
+		}
+
+		.chart-title {
+			font-size: 1.1rem;
+		}
+
+		.current-price {
+			font-size: 1.3rem;
+		}
+
 		.chart-container {
 			height: 300px;
 			padding: 0.75rem;
@@ -227,6 +286,20 @@
 	}
 
 	@media (max-width: 480px) {
+		.chart-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+		}
+
+		.chart-title {
+			font-size: 1rem;
+		}
+
+		.current-price {
+			font-size: 1.2rem;
+		}
+
 		.chart-container {
 			height: 250px;
 			padding: 0.5rem;
