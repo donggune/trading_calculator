@@ -203,6 +203,8 @@
 		border-radius: 12px;
 		padding: 1rem;
 		border: 1px solid rgba(255, 255, 255, 0.05);
+		box-sizing: border-box;
+		overflow: hidden;
 	}
 
 	.chart-container::before {
@@ -215,5 +217,19 @@
 		background: radial-gradient(circle at 50% 50%, rgba(96, 165, 250, 0.05) 0%, transparent 70%);
 		pointer-events: none;
 		border-radius: 12px;
+	}
+
+	@media (max-width: 768px) {
+		.chart-container {
+			height: 300px;
+			padding: 0.75rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.chart-container {
+			height: 250px;
+			padding: 0.5rem;
+		}
 	}
 </style>

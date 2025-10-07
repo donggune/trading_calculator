@@ -3,13 +3,13 @@
 		name: string;
 		symbol: string;
 		price: number;
-		changePercent: number;
 		currency?: string;
+		change24h?: number;
+		changePercent?: number;
 	}
 
-	let { name, symbol, price, changePercent, currency = 'USD' }: Props = $props();
+	let { name, symbol, price, currency = 'USD', change24h, changePercent }: Props = $props();
 
-	const isPositive = $derived(changePercent >= 0);
 	const formattedPrice = $derived(
 		new Intl.NumberFormat('en-US', {
 			style: 'currency',
@@ -29,33 +29,44 @@
 				<span class="symbol">{symbol}</span>
 			</div>
 		</div>
-		<div class="status-indicator" class:positive={isPositive} class:negative={!isPositive}>
-			<div class="status-dot"></div>
-		</div>
 	</div>
 	<div class="card-body">
 		<div class="price-container">
 			<div class="price">{formattedPrice}</div>
-			<div class="change" class:positive={isPositive} class:negative={!isPositive}>
-				<span class="change-icon">{isPositive ? '▲' : '▼'}</span>
-				<span class="change-text">{Math.abs(changePercent).toFixed(2)}%</span>
-			</div>
+			{#if change24h !== undefined && changePercent !== undefined}
+				<div class="price-change" class:positive={change24h >= 0} class:negative={change24h < 0}>
+					<span class="change-amount">
+						{change24h >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', {
+							style: 'currency',
+							currency: currency,
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2
+						}).format(change24h)}
+					</span>
+					<span class="change-percent">
+						({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
+					</span>
+				</div>
+			{/if}
 		</div>
-		<div class="trend-line" class:positive={isPositive} class:negative={!isPositive}></div>
 	</div>
 </div>
 
 <style>
 	.price-card {
-		background: rgba(255, 255, 255, 0.03);
-		border-radius: 16px;
-		padding: 1.5rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 12px;
+		padding: 1.25rem;
+		border: 1px solid rgba(255, 255, 255, 0.15);
 		backdrop-filter: blur(10px);
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
+		min-height: 140px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
 	}
 
 	.price-card::before {
@@ -84,27 +95,28 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1rem;
 	}
 
 	.symbol-container {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.75rem;
 	}
 
 	.symbol-icon {
-		width: 40px;
-		height: 40px;
-		border-radius: 10px;
+		width: 36px;
+		height: 36px;
+		border-radius: 8px;
 		background: linear-gradient(135deg, #60a5fa, #a78bfa);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		font-weight: 700;
-		font-size: 1.125rem;
+		font-size: 1rem;
 		color: white;
-		box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+		box-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);
+		flex-shrink: 0;
 	}
 
 	.symbol-info {
@@ -113,128 +125,115 @@
 	}
 
 	h3 {
-		font-size: 1rem;
+		font-size: 0.9rem;
 		font-weight: 600;
 		margin: 0;
 		color: white;
-		line-height: 1.2;
+		line-height: 1.3;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.symbol {
-		font-size: 0.875rem;
-		color: rgba(255, 255, 255, 0.6);
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.7);
 		font-weight: 500;
-		margin-top: 0.25rem;
-	}
-
-	.status-indicator {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 24px;
-		height: 24px;
-		border-radius: 50%;
-		background: rgba(255, 255, 255, 0.1);
-	}
-
-	.status-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		transition: all 0.3s ease;
-	}
-
-	.status-indicator.positive .status-dot {
-		background: #10b981;
-		box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-	}
-
-	.status-indicator.negative .status-dot {
-		background: #ef4444;
-		box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+		margin-top: 0.2rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.card-body {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 0.75rem;
+		flex: 1;
+		justify-content: center;
 	}
 
 	.price-container {
 		display: flex;
-		justify-content: space-between;
-		align-items: flex-end;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
 	}
 
 	.price {
 		font-size: 1.75rem;
 		font-weight: 700;
 		color: white;
-		line-height: 1;
+		line-height: 1.1;
+		margin-bottom: 0.25rem;
+		word-break: break-all;
 	}
 
-	.change {
+	.price-change {
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
-		padding: 0.25rem 0.75rem;
-		border-radius: 8px;
+		justify-content: center;
+		gap: 0.4rem;
+		font-size: 0.8rem;
 		font-weight: 600;
-		backdrop-filter: blur(10px);
+		flex-wrap: wrap;
 	}
 
-	.change.positive {
-		background: rgba(16, 185, 129, 0.1);
-		border: 1px solid rgba(16, 185, 129, 0.3);
+	.price-change.positive {
 		color: #10b981;
 	}
 
-	.change.negative {
-		background: rgba(239, 68, 68, 0.1);
-		border: 1px solid rgba(239, 68, 68, 0.3);
+	.price-change.negative {
 		color: #ef4444;
 	}
 
-	.change-icon {
-		font-size: 0.875rem;
+	.change-amount {
+		font-size: 0.8rem;
 	}
 
-	.change-text {
-		font-size: 0.875rem;
-	}
-
-	.trend-line {
-		height: 2px;
-		border-radius: 1px;
-		background: linear-gradient(90deg, transparent, currentColor, transparent);
-		opacity: 0.6;
-	}
-
-	.trend-line.positive {
-		color: #10b981;
-	}
-
-	.trend-line.negative {
-		color: #ef4444;
+	.change-percent {
+		font-size: 0.7rem;
+		opacity: 0.9;
 	}
 
 	@media (max-width: 480px) {
 		.price-card {
-			padding: 1.25rem;
+			padding: 1rem;
+			min-height: 120px;
 		}
 
 		.symbol-container {
-			gap: 0.75rem;
+			gap: 0.5rem;
 		}
 
 		.symbol-icon {
-			width: 36px;
-			height: 36px;
-			font-size: 1rem;
+			width: 32px;
+			height: 32px;
+			font-size: 0.9rem;
+		}
+
+		h3 {
+			font-size: 0.85rem;
+		}
+
+		.symbol {
+			font-size: 0.7rem;
 		}
 
 		.price {
 			font-size: 1.5rem;
+		}
+
+		.price-change {
+			font-size: 0.75rem;
+		}
+
+		.change-amount {
+			font-size: 0.75rem;
+		}
+
+		.change-percent {
+			font-size: 0.65rem;
 		}
 	}
 </style>

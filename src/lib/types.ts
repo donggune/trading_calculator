@@ -6,6 +6,7 @@ export interface FinancialPrice {
 	currency: string;
 	price: number;
 	change: number | null;
+	change_24h: number | null;
 	change_percent: number | null;
 	open: number | null;
 	high: number | null;
