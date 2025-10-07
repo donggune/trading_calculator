@@ -14,6 +14,12 @@ const staticPages = [
 		lastmod: new Date().toISOString().split('T')[0],
 		changefreq: 'weekly',
 		priority: '0.9'
+	},
+	{
+		url: '/journal',
+		lastmod: new Date().toISOString().split('T')[0],
+		changefreq: 'weekly',
+		priority: '0.8'
 	}
 ];
 

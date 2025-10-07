@@ -60,19 +60,32 @@
 
 			<!-- 모바일 햄버거 버튼 -->
 			<button
-				class="rounded-lg border border-white/10 bg-white/5 p-2 text-gray-200 hover:bg-white/10 md:hidden"
-				aria-label="메뉴 열기"
+				class="rounded-lg border border-white/10 bg-white/5 p-2 text-gray-200 transition-all hover:bg-white/10 md:hidden"
+				aria-label={showMobileMenu ? '메뉴 닫기' : '메뉴 열기'}
 				aria-expanded={showMobileMenu}
 				onclick={() => (showMobileMenu = !showMobileMenu)}
 			>
-				<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 6h16M4 12h16M4 18h16"
-					/>
-				</svg>
+				{#if showMobileMenu}
+					<!-- X 아이콘 -->
+					<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						/>
+					</svg>
+				{:else}
+					<!-- 햄버거 아이콘 -->
+					<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 6h16M4 12h16M4 18h16"
+						/>
+					</svg>
+				{/if}
 			</button>
 
 			<!-- 사용자 메뉴 (데스크톱 전용) -->
@@ -175,8 +188,21 @@
 
 <!-- 모바일 네비게이션 패널 -->
 {#if showMobileMenu}
-	<div class="md:hidden">
-		<div class="border-b border-white/10 bg-black/90 backdrop-blur-xl">
+	<!-- 오버레이 배경 (클릭 시 메뉴 닫기) -->
+	<div
+		class="animate-fade-in fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
+		onclick={() => (showMobileMenu = false)}
+		onkeydown={(e) => {
+			if (e.key === 'Escape') showMobileMenu = false;
+		}}
+		role="button"
+		tabindex="-1"
+		aria-label="메뉴 닫기"
+	></div>
+
+	<!-- 메뉴 패널 -->
+	<div class="animate-slide-down fixed top-16 right-0 left-0 z-40 md:hidden">
+		<div class="border-b border-white/10 bg-black/95 shadow-lg backdrop-blur-xl">
 			<nav class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
 				<div class="flex flex-col gap-2">
 					<a
@@ -240,3 +266,33 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes slide-down {
+		from {
+			transform: translateY(-100%);
+			opacity: 0;
+		}
+		to {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
+
+	:global(.animate-fade-in) {
+		animation: fade-in 0.2s ease-out;
+	}
+
+	:global(.animate-slide-down) {
+		animation: slide-down 0.3s ease-out;
+	}
+</style>

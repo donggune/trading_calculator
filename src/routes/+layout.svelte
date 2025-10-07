@@ -22,7 +22,19 @@
 </script>
 
 <svelte:head>
+	<!-- 기본 파비콘 및 아이콘 -->
 	<link rel="icon" href={favicon} />
+	<link rel="apple-touch-icon" href={favicon} />
+
+	<!-- 기본 메타 태그 -->
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<!-- PWA 매니페스트 -->
+	<link rel="manifest" href="/manifest.json" />
+
+	<!-- DNS 프리페치 (성능 최적화) -->
+	<link rel="dns-prefetch" href="https://bullgaze.com" />
 </svelte:head>
 
 <Header />

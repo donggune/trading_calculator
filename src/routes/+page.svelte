@@ -5,15 +5,52 @@
 	import PriceCard from '$lib/components/PriceCard.svelte';
 	import type { FinancialPrice } from '$lib/types';
 
-	// 구조화된 데이터
+	// 구조화된 데이터 (Schema.org)
 	const structuredData = {
 		'@context': 'https://schema.org',
-		'@type': 'Dashboard',
-		name: 'BullGaze 실시간 시장 대시보드',
-		description: '실시간 금, 은, 암호화폐 가격 데이터와 차트 분석 도구',
+		'@type': 'WebApplication',
+		name: 'BullGaze',
+		alternateName: 'BullGaze 실시간 시장 대시보드',
+		description:
+			'실시간 금(XAU), 주식지수(S&P500, NASDAQ), 환율(USD/KRW), 원자재 가격 데이터와 차트 분석 도구를 제공하는 투자 분석 플랫폼',
 		url: 'https://bullgaze.com',
 		applicationCategory: 'FinanceApplication',
-		featureList: ['실시간 금 가격', '실시간 은 가격', '암호화폐 가격', '차트 분석', '시장 데이터']
+		operatingSystem: 'Web Browser',
+		browserRequirements: 'Requires JavaScript. Requires HTML5.',
+		offers: {
+			'@type': 'Offer',
+			price: '0',
+			priceCurrency: 'KRW',
+			availability: 'https://schema.org/InStock'
+		},
+		featureList: [
+			'실시간 금(XAU) 가격 조회',
+			'S&P 500 지수 추이',
+			'NASDAQ-100 지수 추이',
+			'달러 인덱스(DXY)',
+			'환율 정보 (USD/KRW, USD/JPY, USD/EUR)',
+			'원유(WTI) 가격',
+			'미국 10년 국채 수익률',
+			'차트 분석 도구',
+			'30일 히스토리 데이터'
+		],
+		screenshot: 'https://bullgaze.com/screenshot-dashboard.jpg',
+		potentialAction: {
+			'@type': 'ViewAction',
+			target: 'https://bullgaze.com'
+		},
+		audience: {
+			'@type': 'Audience',
+			audienceType: '투자자, 트레이더, 금융 분석가'
+		},
+		inLanguage: 'ko-KR',
+		creator: {
+			'@type': 'Organization',
+			name: 'BullGaze',
+			url: 'https://bullgaze.com'
+		},
+		datePublished: '2024-01-01',
+		dateModified: new Date().toISOString().split('T')[0]
 	};
 
 	let loading = $state(true);
@@ -266,11 +303,49 @@
 
 <!-- SEO 메타 태그 및 구조화된 데이터 -->
 <svelte:head>
-	<title>BullGaze - 실시간 시장 대시보드</title>
+	<!-- 기본 메타 태그 -->
+	<title>BullGaze - 실시간 시장 대시보드 | 금, 주식, 환율 분석</title>
 	<meta
 		name="description"
-		content="실시간 금, 은, 암호화폐 가격을 확인하고 투자 분석을 시작하세요. 전문적인 시장 데이터와 차트 분석 도구를 제공합니다."
+		content="실시간 금(XAU), 주식지수(S&P500, NASDAQ), 환율(USD/KRW), 원자재 가격을 확인하고 투자 분석을 시작하세요. 전문적인 시장 데이터와 차트 분석 도구를 무료로 제공합니다."
 	/>
+	<meta
+		name="keywords"
+		content="실시간 금 시세, 금 가격, 주식 시세, S&P500, NASDAQ, 환율, 달러 환율, 투자 분석, 시장 대시보드, 차트 분석, BullGaze"
+	/>
+	<meta name="author" content="BullGaze" />
+	<meta name="robots" content="index, follow" />
+	<link rel="canonical" href="https://bullgaze.com" />
+
+	<!-- Open Graph 메타 태그 (Facebook, LinkedIn 등) -->
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="BullGaze" />
+	<meta property="og:title" content="BullGaze - 실시간 시장 대시보드 | 금, 주식, 환율 분석" />
+	<meta
+		property="og:description"
+		content="실시간 금(XAU), 주식지수(S&P500, NASDAQ), 환율(USD/KRW), 원자재 가격을 확인하고 투자 분석을 시작하세요."
+	/>
+	<meta property="og:url" content="https://bullgaze.com" />
+	<meta property="og:image" content="https://bullgaze.com/og-image.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:locale" content="ko_KR" />
+
+	<!-- Twitter Card 메타 태그 -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="BullGaze - 실시간 시장 대시보드" />
+	<meta
+		name="twitter:description"
+		content="실시간 금, 주식, 환율 가격을 확인하고 투자 분석을 시작하세요. 전문적인 시장 데이터와 차트 분석 도구를 무료로 제공합니다."
+	/>
+	<meta name="twitter:image" content="https://bullgaze.com/twitter-image.jpg" />
+
+	<!-- 추가 메타 태그 -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="theme-color" content="#000000" />
+	<meta name="format-detection" content="telephone=no" />
+
+	<!-- 구조화된 데이터 (JSON-LD) -->
 	<script type="application/ld+json">
 		{JSON.stringify(structuredData)}
 	</script>
@@ -279,27 +354,29 @@
 <div class="dashboard">
 	<header class="dashboard-header">
 		<div class="header-content">
-			<h1>BullGaze Dashboard</h1>
+			<h1 id="page-title">BullGaze Dashboard</h1>
 			<p>실시간 시장 분석 대시보드</p>
 		</div>
 	</header>
 
 	{#if loading}
-		<div class="loading">
-			<div class="spinner"></div>
+		<div class="loading" role="status" aria-live="polite">
+			<div class="spinner" aria-hidden="true"></div>
 			<p>데이터를 불러오는 중...</p>
 		</div>
 	{:else if error}
-		<div class="error">
+		<div class="error" role="alert" aria-live="assertive">
 			<p>❌ {error}</p>
 		</div>
 	{:else}
 		<!-- 가격 카드 섹션 -->
-		<section class="price-cards-container">
+		<section class="price-cards-container" aria-labelledby="market-prices-heading">
+			<h2 id="market-prices-heading" class="sr-only">실시간 시장 가격 정보</h2>
+
 			<!-- 주식 지수 -->
 			{#if groupedPrices().stockIndices.length > 0}
-				<div class="asset-group">
-					<h2 class="group-title">📈 주식 지수</h2>
+				<article class="asset-group" aria-labelledby="stock-indices-title">
+					<h3 id="stock-indices-title" class="group-title">📈 주식 지수</h3>
 					<div class="price-cards">
 						{#each groupedPrices().stockIndices as price}
 							<PriceCard
@@ -312,13 +389,13 @@
 							/>
 						{/each}
 					</div>
-				</div>
+				</article>
 			{/if}
 
 			<!-- 환율 -->
 			{#if groupedPrices().currencies.length > 0}
-				<div class="asset-group">
-					<h2 class="group-title">💱 환율</h2>
+				<article class="asset-group" aria-labelledby="currencies-title">
+					<h3 id="currencies-title" class="group-title">💱 환율</h3>
 					<div class="price-cards">
 						{#each groupedPrices().currencies as price}
 							<PriceCard
@@ -331,13 +408,13 @@
 							/>
 						{/each}
 					</div>
-				</div>
+				</article>
 			{/if}
 
 			<!-- 원자재 -->
 			{#if groupedPrices().commodities.length > 0}
-				<div class="asset-group">
-					<h2 class="group-title">🥇 원자재</h2>
+				<article class="asset-group" aria-labelledby="commodities-title">
+					<h3 id="commodities-title" class="group-title">🥇 원자재</h3>
 					<div class="price-cards">
 						{#each groupedPrices().commodities as price}
 							<PriceCard
@@ -350,13 +427,13 @@
 							/>
 						{/each}
 					</div>
-				</div>
+				</article>
 			{/if}
 
 			<!-- 채권 -->
 			{#if groupedPrices().bonds.length > 0}
-				<div class="asset-group">
-					<h2 class="group-title">🏛️ 채권</h2>
+				<article class="asset-group" aria-labelledby="bonds-title">
+					<h3 id="bonds-title" class="group-title">🏛️ 채권</h3>
 					<div class="price-cards">
 						{#each groupedPrices().bonds as price}
 							<PriceCard
@@ -369,12 +446,13 @@
 							/>
 						{/each}
 					</div>
-				</div>
+				</article>
 			{/if}
 		</section>
 
 		<!-- 차트 섹션 -->
-		<section class="charts">
+		<section class="charts" aria-labelledby="charts-heading">
+			<h2 id="charts-heading" class="sr-only">시장 가격 추이 차트</h2>
 			{#if historicalData['XAU']?.length}
 				<div class="chart-wrapper" id="chart-XAU">
 					<LineChart
@@ -499,6 +577,19 @@
 </div>
 
 <style>
+	/* 스크린 리더 전용 클래스 - SEO 및 접근성 향상 */
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+	}
+
 	.dashboard {
 		max-width: 1400px;
 		margin: 0 auto;

@@ -4,3 +4,4 @@ alwaysApply: true
 
 - This is a SvelteKit + Supabase project
 - Actively utilize Supabase MCP (Model Context Protocol) for database operations
+- When creating tables, always prefix table names with `financial_` (e.g., `financial_transactions`, `financial_accounts`)
