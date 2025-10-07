@@ -105,12 +105,40 @@
 	};
 
 	const iconStyle = $derived(getIconStyle(symbol));
+
+	function scrollTargetToCenter(event: MouseEvent) {
+		// 앵커 기본 이동을 막고 스무스 스크롤로 화면 중앙에 배치
+		event.preventDefault();
+		const targetId = `chart-${symbol.toUpperCase()}`;
+		const el = document.getElementById(targetId);
+		if (!el) return;
+
+		const rect = el.getBoundingClientRect();
+		const currentScrollY = window.scrollY || window.pageYOffset;
+		const elementTopInDocument = rect.top + currentScrollY;
+
+		const viewportHeight = window.innerHeight;
+		const elementHeight = el.offsetHeight;
+
+		// 요소가 화면 중앙에 오도록 목표 스크롤 위치 계산
+		const desiredTop = elementTopInDocument - (viewportHeight - elementHeight) / 2;
+
+		// 페이지 경계를 벗어나지 않도록 클램프
+		const maxScroll = Math.max(0, document.documentElement.scrollHeight - viewportHeight);
+		const finalTop = Math.min(Math.max(0, desiredTop), maxScroll);
+
+		window.scrollTo({ top: finalTop, behavior: 'smooth' });
+		// 포커스 이동으로 접근성 향상
+		el.setAttribute('tabindex', '-1');
+		el.focus({ preventScroll: true });
+	}
 </script>
 
 <a
 	class="price-card-link"
 	href={`#chart-${symbol.toUpperCase()}`}
 	aria-label={`${name} 차트로 이동`}
+	onclick={scrollTargetToCenter}
 >
 	<div class="price-card">
 		<div class="card-header">

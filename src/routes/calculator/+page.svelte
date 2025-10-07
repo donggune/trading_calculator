@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 
-	// SEO 메타 태그
-	$effect(() => {
-		page.title = '분할 익절 계산기 - BullGaze';
-		page.description =
-			'스마트한 분할 익절 전략으로 투자 수익을 극대화하세요. 매수가, 수량, 상승률을 입력하면 자동으로 4단계 분할 익절 계획을 생성합니다.';
-	});
+	// SEO 메타 태그는 svelte:head에서 처리
 
 	// 구조화된 데이터
 	const structuredData = {
@@ -149,31 +144,17 @@
 
 <!-- 구조화된 데이터 -->
 <svelte:head>
+	<title>분할 익절 계산기 - BullGaze</title>
+	<meta
+		name="description"
+		content="스마트한 분할 익절 전략으로 투자 수익을 극대화하세요. 매수가, 수량, 상승률을 입력하면 자동으로 4단계 분할 익절 계획을 생성합니다."
+	/>
 	<script type="application/ld+json">
-		{JSON.stringify(structuredData)}
+        {JSON.stringify(structuredData)}
 	</script>
 </svelte:head>
 
-<div class="min-h-screen bg-black pb-24">
-	<!-- 배경 그라디언트 -->
-	<div class="pointer-events-none fixed inset-0">
-		<div
-			class="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10"
-		></div>
-		<div
-			class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,0),rgba(0,0,0,1))]"
-		></div>
-		<div
-			class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.1),transparent_50%)]"
-		></div>
-		<div
-			class="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(147,51,234,0.1),transparent_50%)]"
-		></div>
-		<div
-			class="absolute inset-0 bg-[radial-gradient(circle_at_40%_80%,rgba(236,72,153,0.05),transparent_50%)]"
-		></div>
-	</div>
-
+<div class="min-h-screen pb-24">
 	<div
 		class="relative mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:max-w-none xl:px-12"
 	>

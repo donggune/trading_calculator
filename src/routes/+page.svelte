@@ -279,7 +279,7 @@
 <div class="dashboard">
 	<header class="dashboard-header">
 		<div class="header-content">
-			<h1>📊 BullGaze Dashboard</h1>
+			<h1>BullGaze Dashboard</h1>
 			<p>실시간 시장 분석 대시보드</p>
 		</div>
 	</header>
@@ -504,7 +504,8 @@
 		margin: 0 auto;
 		padding: 2rem;
 		min-height: 100vh;
-		background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+		/* 페이지 배경 제거: 상위 배경을 그대로 사용 */
+		background: transparent;
 	}
 
 	.dashboard-header {

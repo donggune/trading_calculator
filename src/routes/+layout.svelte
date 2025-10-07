@@ -2,54 +2,32 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { initAuth } from '$lib/stores/auth';
+	import Header from '$lib/components/Header.svelte';
 
 	let { children } = $props();
 
 	const isActive = (path: string) => {
 		return $page.url.pathname === path;
 	};
+
+	// 인증 초기화
+	onMount(() => {
+		const unsubscribe = initAuth();
+		return () => {
+			if (unsubscribe) unsubscribe();
+		};
+	});
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="app-container">
-	<nav class="main-nav">
-		<div class="nav-content">
-			<a href="/" class="logo">
-				<div class="logo-icon">💹</div>
-				<div class="logo-text">
-					<span class="logo-title">BullGaze</span>
-					<span class="logo-subtitle">시장 분석 도구</span>
-				</div>
-			</a>
-			<div class="nav-links">
-				<a href="/" class:active={isActive('/')}>
-					<div class="nav-icon">📊</div>
-					<div class="nav-text">
-						<span class="nav-label">대시보드</span>
-						<span class="nav-desc">금융 데이터</span>
-					</div>
-				</a>
-				<a href="/calculator" class:active={isActive('/calculator')}>
-					<div class="nav-icon">🎯</div>
-					<div class="nav-text">
-						<span class="nav-label">분할 익절</span>
-						<span class="nav-desc">계산기</span>
-					</div>
-				</a>
-				<a href="/journal" class:active={isActive('/journal')}>
-					<div class="nav-icon">📊</div>
-					<div class="nav-text">
-						<span class="nav-label">매매일지</span>
-						<span class="nav-desc">거래 기록</span>
-					</div>
-				</a>
-			</div>
-		</div>
-	</nav>
+<Header />
 
+<div class="app-container">
 	<main class="main-content">{@render children?.()}</main>
 
 	<!-- 푸터 -->
