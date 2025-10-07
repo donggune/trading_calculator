@@ -170,12 +170,17 @@
 	}
 
 	// 차트 데이터 준비
-	const goldChartData = $derived(() =>
-		createChartData('XAU', 'Gold (XAU)', 'rgb(255, 193, 7)', 'rgba(255, 193, 7, 0.1)')
+	const goldFuturesChartData = $derived(() =>
+		createChartData('GC', 'Gold Futures (GC)', 'rgb(255, 193, 7)', 'rgba(255, 193, 7, 0.1)')
 	);
 
-	const nasdaqChartData = $derived(() =>
-		createChartData('NDX', 'NASDAQ-100 (NDX)', 'rgb(59, 130, 246)', 'rgba(59, 130, 246, 0.1)')
+	const nasdaqCompChartData = $derived(() =>
+		createChartData(
+			'IXIC',
+			'NASDAQ Composite (IXIC)',
+			'rgb(59, 130, 246)',
+			'rgba(59, 130, 246, 0.1)'
+		)
 	);
 
 	const dollarIndexChartData = $derived(() =>
@@ -191,8 +196,8 @@
 		createChartData('SPX', 'S&P 500 (SPX)', 'rgb(239, 68, 68)', 'rgba(239, 68, 68, 0.1)')
 	);
 
-	const crudeOilChartData = $derived(() =>
-		createChartData('WTI', 'Crude Oil WTI (WTI)', 'rgb(168, 85, 247)', 'rgba(168, 85, 247, 0.1)')
+	const crudeOilFuturesChartData = $derived(() =>
+		createChartData('CL', 'Crude Oil Futures (CL)', 'rgb(168, 85, 247)', 'rgba(168, 85, 247, 0.1)')
 	);
 
 	const nikkeiChartData = $derived(() =>
@@ -220,20 +225,25 @@
 		createChartData('USDKRW', 'USD/KRW', 'rgb(220, 38, 127)', 'rgba(220, 38, 127, 0.1)')
 	);
 
-	const usdJpyChartData = $derived(() =>
-		createChartData('USDJPY', 'USD/JPY', 'rgb(14, 165, 233)', 'rgba(14, 165, 233, 0.1)')
+	const jpyFuturesChartData = $derived(() =>
+		createChartData(
+			'6J',
+			'Japanese Yen Futures (6J)',
+			'rgb(14, 165, 233)',
+			'rgba(14, 165, 233, 0.1)'
+		)
 	);
 
-	const usdEurChartData = $derived(() =>
-		createChartData('USDEUR', 'USD/EUR', 'rgb(16, 185, 129)', 'rgba(16, 185, 129, 0.1)')
+	const eurFuturesChartData = $derived(() =>
+		createChartData('6E', 'Euro Futures (6E)', 'rgb(16, 185, 129)', 'rgba(16, 185, 129, 0.1)')
 	);
 
 	// 자산 타입 분류 맵 - 성능 최적화: 심볼 체크를 O(1)로
 	const assetTypeMap = {
-		stockIndices: new Set(['SPX', 'NDX', 'N225', 'RUT', 'NQ']),
-		commodities: new Set(['XAU', 'WTI', 'GOLD', 'OIL']),
+		stockIndices: new Set(['SPX', 'IXIC', 'N225', 'RUT', 'NQ']),
+		commodities: new Set(['GC', 'CL', 'GOLD', 'OIL']),
 		bonds: new Set(['TNX', 'TREASURY', 'BOND']),
-		currencies: new Set(['DXY', 'USD', 'USDKRW', 'USDJPY', 'USDEUR', 'KRW', 'JPY', 'EUR'])
+		currencies: new Set(['DXY', 'USD', 'USDKRW', '6J', '6E', 'KRW', 'JPY', 'EUR'])
 	};
 
 	function getAssetType(symbol: string): keyof typeof assetTypeMap | 'stockIndices' {
@@ -290,10 +300,48 @@
 			groups[type].push(price);
 		});
 
-		// 각 그룹 내에서 심볼순으로 정렬
-		for (const group of Object.values(groups)) {
-			group.sort((a, b) => a.symbol.localeCompare(b.symbol));
-		}
+		// 주식 지수 커스텀 순서 정의: 나스닥100선물 → 나스닥종합 → S&P → Russell → Nikkei
+		const stockIndicesOrder = ['NQ', 'IXIC', 'SPX', 'RUT', 'N225'];
+
+		// 환율 커스텀 순서 정의: 달러인덱스 → 달러/원 → 엔화선물 → 유로선물
+		const currenciesOrder = ['DXY', 'USDKRW', '6J', '6E'];
+
+		// 원자재 커스텀 순서 정의: 금선물 → 원유선물
+		const commoditiesOrder = ['GC', 'CL'];
+
+		// 주식 지수는 커스텀 순서로 정렬
+		groups.stockIndices.sort((a, b) => {
+			const indexA = stockIndicesOrder.indexOf(a.symbol);
+			const indexB = stockIndicesOrder.indexOf(b.symbol);
+			// 순서에 없는 심볼은 뒤로 보내고 알파벳순 정렬
+			if (indexA === -1 && indexB === -1) return a.symbol.localeCompare(b.symbol);
+			if (indexA === -1) return 1;
+			if (indexB === -1) return -1;
+			return indexA - indexB;
+		});
+
+		// 환율 커스텀 순서로 정렬
+		groups.currencies.sort((a, b) => {
+			const indexA = currenciesOrder.indexOf(a.symbol);
+			const indexB = currenciesOrder.indexOf(b.symbol);
+			if (indexA === -1 && indexB === -1) return a.symbol.localeCompare(b.symbol);
+			if (indexA === -1) return 1;
+			if (indexB === -1) return -1;
+			return indexA - indexB;
+		});
+
+		// 원자재 커스텀 순서로 정렬
+		groups.commodities.sort((a, b) => {
+			const indexA = commoditiesOrder.indexOf(a.symbol);
+			const indexB = commoditiesOrder.indexOf(b.symbol);
+			if (indexA === -1 && indexB === -1) return a.symbol.localeCompare(b.symbol);
+			if (indexA === -1) return 1;
+			if (indexB === -1) return -1;
+			return indexA - indexB;
+		});
+
+		// 채권은 심볼순으로 정렬
+		groups.bonds.sort((a, b) => a.symbol.localeCompare(b.symbol));
 
 		return groups;
 	});
@@ -465,14 +513,28 @@
 		<!-- 차트 섹션 -->
 		<section class="charts" aria-labelledby="charts-heading">
 			<h2 id="charts-heading" class="sr-only">시장 가격 추이 차트</h2>
-			{#if historicalData['XAU']?.length}
-				<div class="chart-wrapper" id="chart-XAU">
+
+			<!-- 주식 지수 차트 -->
+			{#if historicalData['NQ']?.length}
+				<div class="chart-wrapper" id="chart-NQ">
 					<LineChart
-						labels={goldChartData().labels}
-						datasets={goldChartData().datasets}
-						title="금 (XAU) 가격 추이"
-						currentPrice={getCurrentPrice('XAU')}
-						currency={getCurrency('XAU')}
+						labels={nasdaqFuturesChartData().labels}
+						datasets={nasdaqFuturesChartData().datasets}
+						title="나스닥-100 선물 (NQ) 추이"
+						currentPrice={getCurrentPrice('NQ')}
+						currency={getCurrency('NQ')}
+					/>
+				</div>
+			{/if}
+
+			{#if historicalData['IXIC']?.length}
+				<div class="chart-wrapper" id="chart-IXIC">
+					<LineChart
+						labels={nasdaqCompChartData().labels}
+						datasets={nasdaqCompChartData().datasets}
+						title="나스닥 종합지수 (IXIC) 추이"
+						currentPrice={getCurrentPrice('IXIC')}
+						currency={getCurrency('IXIC')}
 					/>
 				</div>
 			{/if}
@@ -489,38 +551,14 @@
 				</div>
 			{/if}
 
-			{#if historicalData['NDX']?.length}
-				<div class="chart-wrapper" id="chart-NDX">
+			{#if historicalData['RUT']?.length}
+				<div class="chart-wrapper" id="chart-RUT">
 					<LineChart
-						labels={nasdaqChartData().labels}
-						datasets={nasdaqChartData().datasets}
-						title="나스닥-100 (NDX) 지수 추이"
-						currentPrice={getCurrentPrice('NDX')}
-						currency={getCurrency('NDX')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['DXY']?.length}
-				<div class="chart-wrapper" id="chart-DXY">
-					<LineChart
-						labels={dollarIndexChartData().labels}
-						datasets={dollarIndexChartData().datasets}
-						title="달러 인덱스 (DXY) 추이"
-						currentPrice={getCurrentPrice('DXY')}
-						currency={getCurrency('DXY')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['WTI']?.length}
-				<div class="chart-wrapper" id="chart-WTI">
-					<LineChart
-						labels={crudeOilChartData().labels}
-						datasets={crudeOilChartData().datasets}
-						title="원유 WTI (WTI) 가격 추이"
-						currentPrice={getCurrentPrice('WTI')}
-						currency={getCurrency('WTI')}
+						labels={russell2000ChartData().labels}
+						datasets={russell2000ChartData().datasets}
+						title="러셀 2000 (RUT) 지수 추이"
+						currentPrice={getCurrentPrice('RUT')}
+						currency={getCurrency('RUT')}
 					/>
 				</div>
 			{/if}
@@ -537,38 +575,15 @@
 				</div>
 			{/if}
 
-			{#if historicalData['NQ']?.length}
-				<div class="chart-wrapper" id="chart-NQ">
+			<!-- 환율 차트 -->
+			{#if historicalData['DXY']?.length}
+				<div class="chart-wrapper" id="chart-DXY">
 					<LineChart
-						labels={nasdaqFuturesChartData().labels}
-						datasets={nasdaqFuturesChartData().datasets}
-						title="나스닥-100 선물 (NQ) 추이"
-						currentPrice={getCurrentPrice('NQ')}
-						currency={getCurrency('NQ')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['RUT']?.length}
-				<div class="chart-wrapper" id="chart-RUT">
-					<LineChart
-						labels={russell2000ChartData().labels}
-						datasets={russell2000ChartData().datasets}
-						title="러셀 2000 (RUT) 지수 추이"
-						currentPrice={getCurrentPrice('RUT')}
-						currency={getCurrency('RUT')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['TNX']?.length}
-				<div class="chart-wrapper" id="chart-TNX">
-					<LineChart
-						labels={us10YearTreasuryChartData().labels}
-						datasets={us10YearTreasuryChartData().datasets}
-						title="미국 10년 국채 (TNX) 수익률 추이"
-						currentPrice={getCurrentPrice('TNX')}
-						currency={getCurrency('TNX')}
+						labels={dollarIndexChartData().labels}
+						datasets={dollarIndexChartData().datasets}
+						title="달러 인덱스 (DXY) 추이"
+						currentPrice={getCurrentPrice('DXY')}
+						currency={getCurrency('DXY')}
 					/>
 				</div>
 			{/if}
@@ -585,26 +600,64 @@
 				</div>
 			{/if}
 
-			{#if historicalData['USDJPY']?.length}
-				<div class="chart-wrapper" id="chart-USDJPY">
+			{#if historicalData['6J']?.length}
+				<div class="chart-wrapper" id="chart-6J">
 					<LineChart
-						labels={usdJpyChartData().labels}
-						datasets={usdJpyChartData().datasets}
-						title="달러-엔 (USD/JPY) 환율 추이"
-						currentPrice={getCurrentPrice('USDJPY')}
-						currency={getCurrency('USDJPY')}
+						labels={jpyFuturesChartData().labels}
+						datasets={jpyFuturesChartData().datasets}
+						title="엔화 선물 (6J) 추이"
+						currentPrice={getCurrentPrice('6J')}
+						currency={getCurrency('6J')}
 					/>
 				</div>
 			{/if}
 
-			{#if historicalData['USDEUR']?.length}
-				<div class="chart-wrapper" id="chart-USDEUR">
+			{#if historicalData['6E']?.length}
+				<div class="chart-wrapper" id="chart-6E">
 					<LineChart
-						labels={usdEurChartData().labels}
-						datasets={usdEurChartData().datasets}
-						title="달러-유로 (USD/EUR) 환율 추이"
-						currentPrice={getCurrentPrice('USDEUR')}
-						currency={getCurrency('USDEUR')}
+						labels={eurFuturesChartData().labels}
+						datasets={eurFuturesChartData().datasets}
+						title="유로 선물 (6E) 추이"
+						currentPrice={getCurrentPrice('6E')}
+						currency={getCurrency('6E')}
+					/>
+				</div>
+			{/if}
+
+			<!-- 원자재 차트 -->
+			{#if historicalData['GC']?.length}
+				<div class="chart-wrapper" id="chart-GC">
+					<LineChart
+						labels={goldFuturesChartData().labels}
+						datasets={goldFuturesChartData().datasets}
+						title="금 선물 (GC) 가격 추이"
+						currentPrice={getCurrentPrice('GC')}
+						currency={getCurrency('GC')}
+					/>
+				</div>
+			{/if}
+
+			{#if historicalData['CL']?.length}
+				<div class="chart-wrapper" id="chart-CL">
+					<LineChart
+						labels={crudeOilFuturesChartData().labels}
+						datasets={crudeOilFuturesChartData().datasets}
+						title="원유 선물 (CL) 가격 추이"
+						currentPrice={getCurrentPrice('CL')}
+						currency={getCurrency('CL')}
+					/>
+				</div>
+			{/if}
+
+			<!-- 채권 차트 -->
+			{#if historicalData['TNX']?.length}
+				<div class="chart-wrapper" id="chart-TNX">
+					<LineChart
+						labels={us10YearTreasuryChartData().labels}
+						datasets={us10YearTreasuryChartData().datasets}
+						title="미국 10년 국채 (TNX) 수익률 추이"
+						currentPrice={getCurrentPrice('TNX')}
+						currency={getCurrency('TNX')}
 					/>
 				</div>
 			{/if}

@@ -14,21 +14,52 @@
 	let canvasRef = $state<HTMLCanvasElement | null>(null);
 	let chartInstance: Chart | null = null;
 
-	// 차트 색상 팔레트
-	const colors = [
+	// 고정 팔레트 (요청: 파랑, 핑크, 초록, 주황만 사용)
+	const fixedPalette = [
 		'rgb(59, 130, 246)', // 파랑
 		'rgb(236, 72, 153)', // 핑크
 		'rgb(16, 185, 129)', // 초록
 		'rgb(245, 158, 11)' // 주황
 	];
 
-	// 현재 표시 중인 자산 집합에 대해 유일한 색상을 안정적으로 매핑
-	function buildColorMap(symbols: string[]): Map<string, string> {
-		const ordered = [...symbols].sort();
-		const map = new Map<string, string>();
-		for (let i = 0; i < ordered.length; i++) {
-			map.set(ordered[i], colors[i % colors.length]);
+	// 세션 동안 유지되는 색상 매핑(심볼 -> 색상)
+	const symbolToColor = new Map<string, string>();
+
+	// 다음으로 할당할 팔레트 인덱스 계산 (가장 낮은 미사용 인덱스)
+	function getNextPaletteIndex(): number {
+		const used = new Set<number>();
+		for (const color of symbolToColor.values()) {
+			const idx = fixedPalette.indexOf(color);
+			if (idx >= 0) used.add(idx);
 		}
+		for (let i = 0; i < fixedPalette.length; i++) {
+			if (!used.has(i)) return i;
+		}
+		return 0;
+	}
+
+	function resetColorState() {
+		symbolToColor.clear();
+	}
+
+	function assignColorIfNeeded(symbol: string) {
+		if (symbolToColor.has(symbol)) return;
+		const color = fixedPalette[getNextPaletteIndex() % fixedPalette.length];
+		symbolToColor.set(symbol, color);
+	}
+
+	// 현재 화면에 보이는 자산들에 대한 일관된 색상 매핑 생성
+	function buildColorMap(symbols: string[]): Map<string, string> {
+		const current = new Set(symbols);
+		// 1) 보이지 않는 심볼 제거하여 색상 반환
+		for (const key of Array.from(symbolToColor.keys())) {
+			if (!current.has(key)) symbolToColor.delete(key);
+		}
+		// 2) 새 심볼에만 순서대로 색상 부여
+		for (const s of symbols) assignColorIfNeeded(s);
+		// 3) 매핑 반환 (현재 표시 순서 유지)
+		const map = new Map<string, string>();
+		for (const s of symbols) map.set(s, symbolToColor.get(s)!);
 		return map;
 	}
 
@@ -55,10 +86,10 @@
 		const datasets = assets.map((asset) => {
 			const source = normalized ? asset.normalizedData || asset.data : asset.data;
 			const data = source ? [...source] : [];
-			const color = colorMap.get(asset.symbol) || colors[0];
+			const color = colorMap.get(asset.symbol) || fixedPalette[0];
 
 			return {
-				label: `${asset.name} (${asset.symbol})`,
+				label: asset.name, // 심볼 중복 표기 제거
 				data: data,
 				borderColor: color,
 				backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.15)'),
@@ -148,6 +179,8 @@
 	}
 
 	onMount(() => {
+		// 초기 렌더 시 색상 상태 초기화 (다른 페이지 전환 후 잔존 상태 방지)
+		resetColorState();
 		createChart();
 
 		return () => {

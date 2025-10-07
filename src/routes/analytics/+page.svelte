@@ -31,7 +31,7 @@
 	let insights = $state<MarketInsight[]>([]);
 
 	// 비교할 자산 선택 (초기: 환율 4개)
-	let selectedAssets = $state<string[]>(['USDKRW', 'USDJPY', 'USDEUR', 'DXY']);
+	let selectedAssets = $state<string[]>(['DXY', 'USDKRW', '6J', '6E']);
 	let availableAssets = $state<{ symbol: string; name: string }[]>([]);
 	let comparisonAssets = $state<AssetComparison[]>([]);
 	let useNormalized = $state(true);
