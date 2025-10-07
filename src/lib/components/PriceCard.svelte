@@ -107,42 +107,48 @@
 	const iconStyle = $derived(getIconStyle(symbol));
 </script>
 
-<div class="price-card">
-	<div class="card-header">
-		<div class="symbol-container">
-			<div
-				class="symbol-icon"
-				style="--icon-gradient: {iconStyle.gradient}; --icon-shadow: {iconStyle.shadow};"
-			>
-				{symbol.charAt(0)}
-			</div>
-			<div class="symbol-info">
-				<h3>{name}</h3>
-				<span class="symbol">{symbol}</span>
-			</div>
-		</div>
-	</div>
-	<div class="card-body">
-		<div class="price-container">
-			<div class="price">{formattedPrice}</div>
-			{#if change24h !== undefined && changePercent !== undefined}
-				<div class="price-change" class:positive={change24h >= 0} class:negative={change24h < 0}>
-					<span class="change-amount">
-						{change24h >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', {
-							style: 'currency',
-							currency: currency,
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2
-						}).format(change24h)}
-					</span>
-					<span class="change-percent">
-						({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
-					</span>
+<a
+	class="price-card-link"
+	href={`#chart-${symbol.toUpperCase()}`}
+	aria-label={`${name} 차트로 이동`}
+>
+	<div class="price-card">
+		<div class="card-header">
+			<div class="symbol-container">
+				<div
+					class="symbol-icon"
+					style="--icon-gradient: {iconStyle.gradient}; --icon-shadow: {iconStyle.shadow};"
+				>
+					{symbol.charAt(0)}
 				</div>
-			{/if}
+				<div class="symbol-info">
+					<h3>{name}</h3>
+					<span class="symbol">{symbol}</span>
+				</div>
+			</div>
+		</div>
+		<div class="card-body">
+			<div class="price-container">
+				<div class="price">{formattedPrice}</div>
+				{#if change24h !== undefined && changePercent !== undefined}
+					<div class="price-change" class:positive={change24h >= 0} class:negative={change24h < 0}>
+						<span class="change-amount">
+							{change24h >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', {
+								style: 'currency',
+								currency: currency,
+								minimumFractionDigits: 2,
+								maximumFractionDigits: 2
+							}).format(change24h)}
+						</span>
+						<span class="change-percent">
+							({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
+						</span>
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
-</div>
+</a>
 
 <style>
 	.price-card {
@@ -161,6 +167,12 @@
 		justify-content: space-between;
 		width: 100%;
 		box-sizing: border-box;
+	}
+
+	.price-card-link {
+		text-decoration: none;
+		color: inherit;
+		display: block;
 	}
 
 	.price-card::before {
@@ -183,6 +195,19 @@
 		transform: translateY(-4px);
 		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 		border-color: rgba(255, 255, 255, 0.2);
+	}
+
+	.price-card-link:focus-visible .price-card,
+	.price-card-link:hover .price-card {
+		outline: none;
+		border-color: rgba(96, 165, 250, 0.6);
+		box-shadow:
+			0 0 0 3px rgba(96, 165, 250, 0.35),
+			0 12px 40px rgba(0, 0, 0, 0.4);
+	}
+
+	.price-card-link {
+		cursor: pointer;
 	}
 
 	.card-header {

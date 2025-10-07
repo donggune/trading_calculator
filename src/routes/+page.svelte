@@ -376,7 +376,7 @@
 		<!-- 차트 섹션 -->
 		<section class="charts">
 			{#if historicalData['XAU']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-XAU">
 					<LineChart
 						labels={goldChartData().labels}
 						datasets={goldChartData().datasets}
@@ -386,7 +386,7 @@
 			{/if}
 
 			{#if historicalData['SPX']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-SPX">
 					<LineChart
 						labels={sp500ChartData().labels}
 						datasets={sp500ChartData().datasets}
@@ -396,7 +396,7 @@
 			{/if}
 
 			{#if historicalData['NDX']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-NDX">
 					<LineChart
 						labels={nasdaqChartData().labels}
 						datasets={nasdaqChartData().datasets}
@@ -406,7 +406,7 @@
 			{/if}
 
 			{#if historicalData['DXY']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-DXY">
 					<LineChart
 						labels={dollarIndexChartData().labels}
 						datasets={dollarIndexChartData().datasets}
@@ -416,7 +416,7 @@
 			{/if}
 
 			{#if historicalData['WTI']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-WTI">
 					<LineChart
 						labels={crudeOilChartData().labels}
 						datasets={crudeOilChartData().datasets}
@@ -426,7 +426,7 @@
 			{/if}
 
 			{#if historicalData['N225']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-N225">
 					<LineChart
 						labels={nikkeiChartData().labels}
 						datasets={nikkeiChartData().datasets}
@@ -436,7 +436,7 @@
 			{/if}
 
 			{#if historicalData['NQ']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-NQ">
 					<LineChart
 						labels={nasdaqFuturesChartData().labels}
 						datasets={nasdaqFuturesChartData().datasets}
@@ -446,7 +446,7 @@
 			{/if}
 
 			{#if historicalData['RUT']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-RUT">
 					<LineChart
 						labels={russell2000ChartData().labels}
 						datasets={russell2000ChartData().datasets}
@@ -456,7 +456,7 @@
 			{/if}
 
 			{#if historicalData['TNX']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-TNX">
 					<LineChart
 						labels={us10YearTreasuryChartData().labels}
 						datasets={us10YearTreasuryChartData().datasets}
@@ -466,7 +466,7 @@
 			{/if}
 
 			{#if historicalData['USDKRW']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-USDKRW">
 					<LineChart
 						labels={usdKrwChartData().labels}
 						datasets={usdKrwChartData().datasets}
@@ -476,7 +476,7 @@
 			{/if}
 
 			{#if historicalData['USDJPY']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-USDJPY">
 					<LineChart
 						labels={usdJpyChartData().labels}
 						datasets={usdJpyChartData().datasets}
@@ -486,7 +486,7 @@
 			{/if}
 
 			{#if historicalData['USDEUR']?.length}
-				<div class="chart-wrapper">
+				<div class="chart-wrapper" id="chart-USDEUR">
 					<LineChart
 						labels={usdEurChartData().labels}
 						datasets={usdEurChartData().datasets}
@@ -617,7 +617,7 @@
 
 	.charts {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+		grid-template-columns: 1fr;
 		gap: 2rem;
 		padding: 0 1rem;
 	}
