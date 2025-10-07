@@ -18,12 +18,104 @@
 			maximumFractionDigits: 2
 		}).format(price)
 	);
+
+	// 자산별 아이콘 스타일 설정 (심플한 단색)
+	const getIconStyle = (symbol: string) => {
+		const symbolUpper = symbol.toUpperCase();
+
+		// 주식 지수 - 회색 계열
+		if (symbolUpper.includes('SPX') || symbolUpper.includes('S&P')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+		if (symbolUpper.includes('NDX') || symbolUpper.includes('NASDAQ')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+		if (symbolUpper.includes('N225') || symbolUpper.includes('NIKKEI')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+		if (symbolUpper.includes('RUT') || symbolUpper.includes('RUSSELL')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+
+		// 채권 - 회색 계열
+		if (symbolUpper.includes('TNX') || symbolUpper.includes('TREASURY')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+
+		// 원자재 - 회색 계열
+		if (symbolUpper.includes('XAU') || symbolUpper.includes('GOLD')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+		if (symbolUpper.includes('WTI') || symbolUpper.includes('OIL')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+
+		// 환율 - 회색 계열
+		if (symbolUpper.includes('DXY') || symbolUpper.includes('DOLLAR')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+		if (symbolUpper.includes('USDKRW') || symbolUpper.includes('KRW')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+		if (symbolUpper.includes('USDJPY') || symbolUpper.includes('JPY')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+		if (symbolUpper.includes('USDEUR') || symbolUpper.includes('EUR')) {
+			return {
+				gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+				shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+			};
+		}
+
+		// 기본값 - 회색 계열
+		return {
+			gradient: 'linear-gradient(135deg, #6b7280, #4b5563)',
+			shadow: '0 2px 8px rgba(107, 114, 128, 0.3)'
+		};
+	};
+
+	const iconStyle = $derived(getIconStyle(symbol));
 </script>
 
 <div class="price-card">
 	<div class="card-header">
 		<div class="symbol-container">
-			<div class="symbol-icon">{symbol.charAt(0)}</div>
+			<div
+				class="symbol-icon"
+				style="--icon-gradient: {iconStyle.gradient}; --icon-shadow: {iconStyle.shadow};"
+			>
+				{symbol.charAt(0)}
+			</div>
 			<div class="symbol-info">
 				<h3>{name}</h3>
 				<span class="symbol">{symbol}</span>
@@ -63,10 +155,12 @@
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
-		min-height: 140px;
+		height: 160px;
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
+		width: 100%;
+		box-sizing: border-box;
 	}
 
 	.price-card::before {
@@ -108,14 +202,14 @@
 		width: 36px;
 		height: 36px;
 		border-radius: 8px;
-		background: linear-gradient(135deg, #60a5fa, #a78bfa);
+		background: var(--icon-gradient);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		font-weight: 700;
 		font-size: 1rem;
 		color: white;
-		box-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);
+		box-shadow: var(--icon-shadow);
 		flex-shrink: 0;
 	}
 
@@ -199,7 +293,7 @@
 	@media (max-width: 480px) {
 		.price-card {
 			padding: 1rem;
-			min-height: 120px;
+			height: 140px;
 		}
 
 		.symbol-container {
@@ -210,6 +304,8 @@
 			width: 32px;
 			height: 32px;
 			font-size: 0.9rem;
+			background: var(--icon-gradient);
+			box-shadow: var(--icon-shadow);
 		}
 
 		h3 {

@@ -23,72 +23,49 @@
 	let historicalData = $state<{ [key: string]: FinancialPrice[] }>({});
 	let lastUpdated = $state<Date | null>(null);
 
-	// 최신 가격 데이터 가져오기
+	// 최신 가격 데이터 가져오기 - 성능 최적화: 단일 쿼리로 모든 데이터 가져오기
 	async function fetchLatestPrices() {
 		try {
-			// 모든 데이터를 가져온 후 클라이언트에서 중복 제거
+			// 모든 데이터를 한 번에 가져오고 created_at 기준으로 정렬
 			const { data: allData, error: fetchError } = await supabase
 				.from('financial_dashboard_prices')
-				.select('symbol, asset_type, name')
-				.order('symbol');
+				.select('*')
+				.order('created_at', { ascending: false });
 
 			if (fetchError) throw fetchError;
 
-			// 클라이언트에서 고유한 심볼들 추출
-			const uniqueSymbols = new Map<string, { symbol: string; asset_type: string; name: string }>();
+			// 클라이언트에서 각 심볼별 최신 데이터만 추출
+			const latestMap = new Map<string, FinancialPrice>();
 			allData?.forEach((item) => {
 				const key = `${item.symbol}-${item.asset_type}`;
-				if (!uniqueSymbols.has(key)) {
-					uniqueSymbols.set(key, item);
+				// 이미 정렬되어 있으므로 처음 만나는 것이 최신 데이터
+				if (!latestMap.has(key)) {
+					latestMap.set(key, item);
 				}
 			});
 
-			const latestPricesArray: FinancialPrice[] = [];
-
-			// 각 심볼에 대해 최신 데이터를 개별적으로 가져오기
-			for (const symbolInfo of uniqueSymbols.values()) {
-				const { data: latestData, error: latestError } = await supabase
-					.from('financial_dashboard_prices')
-					.select('*')
-					.eq('symbol', symbolInfo.symbol)
-					.eq('asset_type', symbolInfo.asset_type)
-					.order('updated_at', { ascending: false })
-					.limit(1)
-					.single();
-
-				if (!latestError && latestData) {
-					latestPricesArray.push(latestData);
-				}
-			}
-
-			latestPrices = latestPricesArray;
+			// Map을 배열로 변환
+			latestPrices = Array.from(latestMap.values());
 			lastUpdated = new Date();
-
-			// 디버깅: 콘솔에 데이터 정보 출력
-			console.log('Total symbols found:', uniqueSymbols.size);
-			console.log('Latest prices count:', latestPrices.length);
-			console.log(
-				'All symbols in data:',
-				latestPrices.map((item) => item.symbol)
-			);
-			console.log(
-				'All asset types:',
-				latestPrices
-					.map((item) => item.asset_type)
-					.filter((type, index, arr) => arr.indexOf(type) === index)
-			);
 		} catch (e) {
 			error = e instanceof Error ? e.message : '데이터를 불러오는데 실패했습니다.';
 		}
 	}
 
-	// 히스토리 데이터 가져오기 (최근 30일)
+	// 히스토리 데이터 가져오기 - 성능 최적화: 최근 30일 데이터만 가져오기
 	async function fetchHistoricalData() {
 		try {
+			// 30일 전 날짜 계산
+			const thirtyDaysAgo = new Date();
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+			const dateFilter = thirtyDaysAgo.toISOString();
+
+			// 최근 30일 데이터만 필터링하여 가져오기
 			const { data, error: fetchError } = await supabase
 				.from('financial_dashboard_prices')
 				.select('*')
-				.order('updated_at', { ascending: true });
+				.gte('created_at', dateFilter) // created_at >= 30일 전
+				.order('created_at', { ascending: true });
 
 			if (fetchError) throw fetchError;
 
@@ -108,197 +85,168 @@
 		}
 	}
 
+	// 날짜 포맷팅 캐시 - 성능 최적화: 동일한 날짜 재계산 방지
+	const dateFormatCache = new Map<string, string>();
+
+	function formatDate(dateString: string): string {
+		if (!dateFormatCache.has(dateString)) {
+			const date = new Date(dateString);
+			// 날짜만 표시 (시간 제외)
+			dateFormatCache.set(dateString, date.toLocaleDateString('ko-KR'));
+		}
+		return dateFormatCache.get(dateString)!;
+	}
+
+	// 차트 데이터 생성 헬퍼 함수 - 성능 최적화: 중복 코드 제거
+	function createChartData(
+		symbol: string,
+		label: string,
+		borderColor: string,
+		backgroundColor: string
+	) {
+		const data = historicalData[symbol] || [];
+
+		return {
+			labels: data.map((d) => formatDate(d.created_at)),
+			datasets: [
+				{
+					label,
+					data: data.map((d) => Number(d.price)),
+					borderColor,
+					backgroundColor,
+					fill: true
+				}
+			]
+		};
+	}
+
 	// 차트 데이터 준비
-	const goldChartData = $derived(() => {
-		const data = historicalData['XAU'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'Gold (XAU)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(255, 193, 7)',
-					backgroundColor: 'rgba(255, 193, 7, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const goldChartData = $derived(() =>
+		createChartData('XAU', 'Gold (XAU)', 'rgb(255, 193, 7)', 'rgba(255, 193, 7, 0.1)')
+	);
 
-	const nasdaqChartData = $derived(() => {
-		const data = historicalData['NDX'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'NASDAQ-100 (NDX)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(59, 130, 246)',
-					backgroundColor: 'rgba(59, 130, 246, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const nasdaqChartData = $derived(() =>
+		createChartData('NDX', 'NASDAQ-100 (NDX)', 'rgb(59, 130, 246)', 'rgba(59, 130, 246, 0.1)')
+	);
 
-	const dollarIndexChartData = $derived(() => {
-		const data = historicalData['DXY'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'U.S. Dollar Index (DXY)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(16, 185, 129)',
-					backgroundColor: 'rgba(16, 185, 129, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const dollarIndexChartData = $derived(() =>
+		createChartData(
+			'DXY',
+			'U.S. Dollar Index (DXY)',
+			'rgb(16, 185, 129)',
+			'rgba(16, 185, 129, 0.1)'
+		)
+	);
 
-	const sp500ChartData = $derived(() => {
-		const data = historicalData['SPX'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'S&P 500 (SPX)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(239, 68, 68)',
-					backgroundColor: 'rgba(239, 68, 68, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const sp500ChartData = $derived(() =>
+		createChartData('SPX', 'S&P 500 (SPX)', 'rgb(239, 68, 68)', 'rgba(239, 68, 68, 0.1)')
+	);
 
-	const crudeOilChartData = $derived(() => {
-		const data = historicalData['WTI'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'Crude Oil WTI (WTI)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(168, 85, 247)',
-					backgroundColor: 'rgba(168, 85, 247, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const crudeOilChartData = $derived(() =>
+		createChartData('WTI', 'Crude Oil WTI (WTI)', 'rgb(168, 85, 247)', 'rgba(168, 85, 247, 0.1)')
+	);
 
-	const nikkeiChartData = $derived(() => {
-		const data = historicalData['N225'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'Nikkei 225 (N225)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(245, 158, 11)',
-					backgroundColor: 'rgba(245, 158, 11, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const nikkeiChartData = $derived(() =>
+		createChartData('N225', 'Nikkei 225 (N225)', 'rgb(245, 158, 11)', 'rgba(245, 158, 11, 0.1)')
+	);
 
-	const nasdaqFuturesChartData = $derived(() => {
-		const data = historicalData['NQ'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'NASDAQ-100 Futures (NQ)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(99, 102, 241)',
-					backgroundColor: 'rgba(99, 102, 241, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const nasdaqFuturesChartData = $derived(() =>
+		createChartData('NQ', 'NASDAQ-100 Futures (NQ)', 'rgb(99, 102, 241)', 'rgba(99, 102, 241, 0.1)')
+	);
 
-	const russell2000ChartData = $derived(() => {
-		const data = historicalData['RUT'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'Russell 2000 (RUT)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(34, 197, 94)',
-					backgroundColor: 'rgba(34, 197, 94, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const russell2000ChartData = $derived(() =>
+		createChartData('RUT', 'Russell 2000 (RUT)', 'rgb(34, 197, 94)', 'rgba(34, 197, 94, 0.1)')
+	);
 
-	const us10YearTreasuryChartData = $derived(() => {
-		const data = historicalData['TNX'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'US 10-Year Treasury (TNX)',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(251, 191, 36)',
-					backgroundColor: 'rgba(251, 191, 36, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const us10YearTreasuryChartData = $derived(() =>
+		createChartData(
+			'TNX',
+			'US 10-Year Treasury (TNX)',
+			'rgb(251, 191, 36)',
+			'rgba(251, 191, 36, 0.1)'
+		)
+	);
 
-	const usdKrwChartData = $derived(() => {
-		const data = historicalData['USDKRW'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'USD/KRW',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(220, 38, 127)',
-					backgroundColor: 'rgba(220, 38, 127, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const usdKrwChartData = $derived(() =>
+		createChartData('USDKRW', 'USD/KRW', 'rgb(220, 38, 127)', 'rgba(220, 38, 127, 0.1)')
+	);
 
-	const usdJpyChartData = $derived(() => {
-		const data = historicalData['USDJPY'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'USD/JPY',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(14, 165, 233)',
-					backgroundColor: 'rgba(14, 165, 233, 0.1)',
-					fill: true
-				}
-			]
-		};
-	});
+	const usdJpyChartData = $derived(() =>
+		createChartData('USDJPY', 'USD/JPY', 'rgb(14, 165, 233)', 'rgba(14, 165, 233, 0.1)')
+	);
 
-	const usdEurChartData = $derived(() => {
-		const data = historicalData['USDEUR'] || [];
-		return {
-			labels: data.map((d) => new Date(d.updated_at).toLocaleDateString('ko-KR')),
-			datasets: [
-				{
-					label: 'USD/EUR',
-					data: data.map((d) => Number(d.price)),
-					borderColor: 'rgb(16, 185, 129)',
-					backgroundColor: 'rgba(16, 185, 129, 0.1)',
-					fill: true
-				}
-			]
+	const usdEurChartData = $derived(() =>
+		createChartData('USDEUR', 'USD/EUR', 'rgb(16, 185, 129)', 'rgba(16, 185, 129, 0.1)')
+	);
+
+	// 자산 타입 분류 맵 - 성능 최적화: 심볼 체크를 O(1)로
+	const assetTypeMap = {
+		stockIndices: new Set(['SPX', 'NDX', 'N225', 'RUT', 'NQ']),
+		commodities: new Set(['XAU', 'WTI', 'GOLD', 'OIL']),
+		bonds: new Set(['TNX', 'TREASURY', 'BOND']),
+		currencies: new Set(['DXY', 'USD', 'USDKRW', 'USDJPY', 'USDEUR', 'KRW', 'JPY', 'EUR'])
+	};
+
+	function getAssetType(symbol: string): keyof typeof assetTypeMap | 'stockIndices' {
+		const upperSymbol = symbol.toUpperCase();
+
+		// 정확한 매칭 먼저 시도
+		for (const [type, symbols] of Object.entries(assetTypeMap)) {
+			if (symbols.has(upperSymbol)) {
+				return type as keyof typeof assetTypeMap;
+			}
+		}
+
+		// 부분 매칭 (하위 호환성)
+		if (
+			assetTypeMap.commodities.has(upperSymbol) ||
+			upperSymbol.includes('GOLD') ||
+			upperSymbol.includes('OIL')
+		) {
+			return 'commodities';
+		}
+		if (
+			assetTypeMap.bonds.has(upperSymbol) ||
+			upperSymbol.includes('TREASURY') ||
+			upperSymbol.includes('BOND')
+		) {
+			return 'bonds';
+		}
+		if (
+			assetTypeMap.currencies.has(upperSymbol) ||
+			upperSymbol.includes('USD') ||
+			upperSymbol.includes('KRW') ||
+			upperSymbol.includes('JPY') ||
+			upperSymbol.includes('EUR')
+		) {
+			return 'currencies';
+		}
+
+		// 기본값: 주식 지수
+		return 'stockIndices';
+	}
+
+	// 자산 타입별로 그룹화된 가격 데이터
+	const groupedPrices = $derived(() => {
+		const groups = {
+			stockIndices: [] as FinancialPrice[],
+			currencies: [] as FinancialPrice[],
+			commodities: [] as FinancialPrice[],
+			bonds: [] as FinancialPrice[]
 		};
+
+		// 분류 및 정렬을 동시에 수행
+		latestPrices.forEach((price) => {
+			const type = getAssetType(price.symbol);
+			groups[type].push(price);
+		});
+
+		// 각 그룹 내에서 심볼순으로 정렬
+		for (const group of Object.values(groups)) {
+			group.sort((a, b) => a.symbol.localeCompare(b.symbol));
+		}
+
+		return groups;
 	});
 
 	// 데이터 새로고침 함수
@@ -347,17 +295,82 @@
 		</div>
 	{:else}
 		<!-- 가격 카드 섹션 -->
-		<section class="price-cards">
-			{#each latestPrices as price}
-				<PriceCard
-					name={price.name}
-					symbol={price.symbol}
-					price={Number(price.price)}
-					currency={price.currency}
-					change24h={price.change_24h ? Number(price.change_24h) : undefined}
-					changePercent={price.change_percent ? Number(price.change_percent) : undefined}
-				/>
-			{/each}
+		<section class="price-cards-container">
+			<!-- 주식 지수 -->
+			{#if groupedPrices().stockIndices.length > 0}
+				<div class="asset-group">
+					<h2 class="group-title">📈 주식 지수</h2>
+					<div class="price-cards">
+						{#each groupedPrices().stockIndices as price}
+							<PriceCard
+								name={price.name}
+								symbol={price.symbol}
+								price={Number(price.price)}
+								currency={price.currency}
+								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+							/>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- 환율 -->
+			{#if groupedPrices().currencies.length > 0}
+				<div class="asset-group">
+					<h2 class="group-title">💱 환율</h2>
+					<div class="price-cards">
+						{#each groupedPrices().currencies as price}
+							<PriceCard
+								name={price.name}
+								symbol={price.symbol}
+								price={Number(price.price)}
+								currency={price.currency}
+								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+							/>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- 원자재 -->
+			{#if groupedPrices().commodities.length > 0}
+				<div class="asset-group">
+					<h2 class="group-title">🥇 원자재</h2>
+					<div class="price-cards">
+						{#each groupedPrices().commodities as price}
+							<PriceCard
+								name={price.name}
+								symbol={price.symbol}
+								price={Number(price.price)}
+								currency={price.currency}
+								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+							/>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- 채권 -->
+			{#if groupedPrices().bonds.length > 0}
+				<div class="asset-group">
+					<h2 class="group-title">🏛️ 채권</h2>
+					<div class="price-cards">
+						{#each groupedPrices().bonds as price}
+							<PriceCard
+								name={price.name}
+								symbol={price.symbol}
+								price={Number(price.price)}
+								currency={price.currency}
+								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+							/>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</section>
 
 		<!-- 차트 섹션 -->
@@ -522,60 +535,6 @@
 		margin-bottom: 2rem;
 	}
 
-	.header-actions {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 2rem;
-		margin: 2rem 0;
-		flex-wrap: wrap;
-	}
-
-	.refresh-button {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem 1.5rem;
-		background: linear-gradient(135deg, #60a5fa, #3b82f6);
-		color: white;
-		border: none;
-		border-radius: 12px;
-		font-weight: 600;
-		font-size: 0.875rem;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
-	}
-
-	.refresh-button:hover:not(:disabled) {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
-	}
-
-	.refresh-button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-		transform: none;
-	}
-
-	.spinner-small {
-		width: 16px;
-		height: 16px;
-		border: 2px solid rgba(255, 255, 255, 0.3);
-		border-top-color: white;
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	.last-updated {
-		font-size: 0.875rem;
-		color: rgba(255, 255, 255, 0.6);
-		background: rgba(255, 255, 255, 0.05);
-		padding: 0.5rem 1rem;
-		border-radius: 8px;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
 	.loading,
 	.error {
 		display: flex;
@@ -613,12 +572,47 @@
 		text-align: center;
 	}
 
-	.price-cards {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: 1.5rem;
+	.price-cards-container {
 		margin-bottom: 3rem;
 		padding: 0 1rem;
+	}
+
+	.asset-group {
+		margin-bottom: 2.5rem;
+	}
+
+	.group-title {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: white;
+		margin-bottom: 1rem;
+		padding-left: 0.5rem;
+		border-left: 4px solid #60a5fa;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.price-cards {
+		display: grid;
+		/* 데스크톱: 4열 고정, 동일 너비 */
+		grid-template-columns: repeat(4, 1fr);
+		gap: 1.5rem;
+		margin-bottom: 1rem;
+		max-width: 100%;
+	}
+
+	/* 반응형: 화면 너비에 따라 3→2→1열 */
+	@media (max-width: 1200px) {
+		.price-cards {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	@media (max-width: 992px) {
+		.price-cards {
+			grid-template-columns: repeat(2, 1fr);
+		}
 	}
 
 	.charts {
@@ -656,14 +650,16 @@
 			font-size: 2.5rem;
 		}
 
-		.header-actions {
-			flex-direction: column;
-			gap: 1rem;
+		.price-cards-container {
+			padding: 0;
 		}
 
 		.price-cards {
 			grid-template-columns: 1fr;
-			padding: 0;
+		}
+
+		.group-title {
+			font-size: 1.25rem;
 		}
 
 		.charts {

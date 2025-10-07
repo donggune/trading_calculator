@@ -13,6 +13,7 @@ export interface FinancialPrice {
 	low: number | null;
 	prev_close: number | null;
 	volume: number | null;
+	created_at: string;
 	updated_at: string;
 }
 
