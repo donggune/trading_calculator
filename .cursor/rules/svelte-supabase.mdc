@@ -1,0 +1,6 @@
+---
+alwaysApply: true
+---
+
+- This is a SvelteKit + Supabase project
+- Actively utilize Supabase MCP (Model Context Protocol) for database operations
