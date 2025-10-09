@@ -184,7 +184,6 @@
 		border-radius: 12px;
 		padding: 1.25rem;
 		border: 1px solid rgba(255, 255, 255, 0.15);
-		backdrop-filter: blur(10px);
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 		transition: all 0.3s ease;
 		position: relative;

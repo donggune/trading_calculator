@@ -263,6 +263,8 @@
 		margin-bottom: 3rem;
 	}
 
+
+
 	.header-content h1 {
 		font-size: 3rem;
 		font-weight: 800;
@@ -292,7 +294,6 @@
 		background: rgba(255, 255, 255, 0.03);
 		border-radius: 16px;
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
 	}
 
 	.spinner {
@@ -337,7 +338,6 @@
 		border-radius: 16px;
 		padding: 2rem;
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
 	}
 
 	.selector-header {

@@ -60,6 +60,7 @@
 				<h3 class="footer-heading">도구</h3>
 				<ul class="footer-links">
 					<li><a href="/" class="footer-link">대시보드</a></li>
+					<li><a href="/realtime" class="footer-link">실시간 차트</a></li>
 					<li><a href="/calculator" class="footer-link">분할 익절 계산기</a></li>
 					<li><a href="/journal" class="footer-link">매매일지</a></li>
 				</ul>
@@ -262,10 +263,11 @@
 
 	/* 푸터 스타일 */
 	.footer {
-		background: rgba(0, 0, 0, 0.95);
+		background: rgb(0, 0, 0);
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(24px);
 		margin-top: auto;
+		position: relative;
+		z-index: auto;
 	}
 
 	.footer-content {

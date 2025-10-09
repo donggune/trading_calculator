@@ -41,6 +41,14 @@
 					홈
 				</a>
 				<a
+					href="/realtime"
+					class="text-sm font-medium transition-colors {$page.url.pathname === '/realtime'
+						? 'text-blue-400'
+						: 'text-gray-300 hover:text-white'}"
+				>
+					실시간
+				</a>
+				<a
 					href="/analytics"
 					class="text-sm font-medium transition-colors {$page.url.pathname === '/analytics'
 						? 'text-blue-400'
@@ -139,7 +147,7 @@
 
 						{#if showUserMenu}
 							<div
-								class="absolute right-0 mt-2 w-56 rounded-lg border border-white/10 bg-gray-900/95 py-2 shadow-xl backdrop-blur-xl"
+								class="absolute right-0 mt-2 w-56 rounded-lg border border-white/10 bg-gray-900/95 py-2 shadow-xl"
 							>
 								<div class="border-b border-white/10 px-4 py-3">
 									<p class="text-sm font-medium text-white">{$userStore.email}</p>
@@ -198,7 +206,7 @@
 {#if showMobileMenu}
 	<!-- 오버레이 배경 (클릭 시 메뉴 닫기) -->
 	<div
-		class="animate-fade-in fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
+		class="animate-fade-in fixed inset-0 z-30 bg-black/50 md:hidden"
 		onclick={() => (showMobileMenu = false)}
 		onkeydown={(e) => {
 			if (e.key === 'Escape') showMobileMenu = false;
@@ -210,7 +218,7 @@
 
 	<!-- 메뉴 패널 -->
 	<div class="animate-slide-down fixed top-16 right-0 left-0 z-40 md:hidden">
-		<div class="border-b border-white/10 bg-black/95 shadow-lg backdrop-blur-xl">
+		<div class="border-b border-white/10 bg-black/95 shadow-lg">
 			<nav class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
 				<div class="flex flex-col gap-2">
 					<a
@@ -222,6 +230,16 @@
 							: 'text-gray-300 hover:bg-white/5 hover:text-white'}"
 					>
 						홈
+					</a>
+					<a
+						href="/realtime"
+						onclick={() => (showMobileMenu = false)}
+						class="rounded-lg px-3 py-2 text-sm font-medium transition-colors {$page.url
+							.pathname === '/realtime'
+							? 'bg-white/10 text-blue-400'
+							: 'text-gray-300 hover:bg-white/5 hover:text-white'}"
+					>
+						실시간
 					</a>
 					<a
 						href="/analytics"

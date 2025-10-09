@@ -713,8 +713,10 @@
 	.dashboard-header p {
 		font-size: 1.25rem;
 		color: rgba(255, 255, 255, 0.7);
-		margin-bottom: 2rem;
+		margin-bottom: 1rem;
 	}
+
+
 
 	.loading,
 	.error {
@@ -726,7 +728,6 @@
 		background: rgba(255, 255, 255, 0.03);
 		border-radius: 16px;
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
 	}
 
 	.spinner {
@@ -808,7 +809,6 @@
 		border-radius: 16px;
 		padding: 2rem;
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 		transition: all 0.3s ease;
 		overflow: hidden;
