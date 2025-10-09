@@ -140,7 +140,7 @@
 	aria-label={`${name} 차트로 이동`}
 	onclick={scrollTargetToCenter}
 >
-	<div class="price-card">
+	<div class="price-card glass-surface">
 		<div class="card-header">
 			<div class="symbol-container">
 				<div
@@ -180,12 +180,14 @@
 
 <style>
 	.price-card {
-		background: rgba(255, 255, 255, 0.05);
-		border-radius: 12px;
+		/* 유리질 표면 토큰 사용으로 일관성 향상 */
+		background: var(--surface);
+		border: 1px solid var(--surface-border);
+		backdrop-filter: blur(12px) saturate(140%);
+		border-radius: 16px;
 		padding: 1.25rem;
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-		transition: all 0.3s ease;
+		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+		transition: all 0.25s ease;
 		position: relative;
 		overflow: hidden;
 		height: 160px;
@@ -220,8 +222,9 @@
 
 	.price-card:hover {
 		transform: translateY(-4px);
-		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-		border-color: rgba(255, 255, 255, 0.2);
+		box-shadow: 0 14px 44px rgba(0, 0, 0, 0.42);
+		background: var(--surface-hover);
+		border-color: var(--surface-border-strong);
 	}
 
 	.price-card-link:focus-visible .price-card,
@@ -308,11 +311,13 @@
 
 	.price {
 		font-size: 1.75rem;
-		font-weight: 700;
+		font-weight: 800;
 		color: white;
 		line-height: 1.1;
 		margin-bottom: 0.25rem;
 		word-break: break-all;
+		font-variant-numeric: tabular-nums lining-nums;
+		letter-spacing: -0.01em;
 	}
 
 	.price-change {
