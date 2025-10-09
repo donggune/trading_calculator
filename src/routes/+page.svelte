@@ -543,9 +543,13 @@
 					<article class="mb-10" aria-labelledby="stock-indices-title">
 						<h3
 							id="stock-indices-title"
-							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+							class="mb-5 flex items-center gap-3 text-[1.35rem] font-extrabold tracking-tight text-white"
 						>
-							📈 주식 지수
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-[0.9rem]"
+								>📈</span
+							>
+							주식 지수
 						</h3>
 						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{#each groupedPrices().stockIndices as price}
@@ -567,9 +571,13 @@
 					<article class="mb-10" aria-labelledby="economic-indicators-title">
 						<h3
 							id="economic-indicators-title"
-							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+							class="mb-5 flex items-center gap-3 text-[1.35rem] font-extrabold tracking-tight text-white"
 						>
-							📊 경제 지표
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-purple-500 to-pink-500 text-[0.9rem]"
+								>📊</span
+							>
+							경제 지표
 						</h3>
 						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{#each groupedPrices().economicIndicators as price}
@@ -591,9 +599,13 @@
 					<article class="mb-10" aria-labelledby="currencies-title">
 						<h3
 							id="currencies-title"
-							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+							class="mb-5 flex items-center gap-3 text-[1.35rem] font-extrabold tracking-tight text-white"
 						>
-							💱 환율
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-cyan-500 to-blue-500 text-[0.9rem]"
+								>💱</span
+							>
+							환율
 						</h3>
 						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{#each groupedPrices().currencies as price}
@@ -615,9 +627,13 @@
 					<article class="mb-10" aria-labelledby="commodities-title">
 						<h3
 							id="commodities-title"
-							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+							class="mb-5 flex items-center gap-3 text-[1.35rem] font-extrabold tracking-tight text-white"
 						>
-							🥇 원자재
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-amber-400 to-pink-500 text-[0.9rem]"
+								>🥇</span
+							>
+							원자재
 						</h3>
 						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{#each groupedPrices().commodities as price}
@@ -639,9 +655,13 @@
 					<article class="mb-10" aria-labelledby="bonds-title">
 						<h3
 							id="bonds-title"
-							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+							class="mb-5 flex items-center gap-3 text-[1.35rem] font-extrabold tracking-tight text-white"
 						>
-							🏛️ 채권
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-yellow-500 to-rose-400 text-[0.9rem]"
+								>🏛️</span
+							>
+							채권
 						</h3>
 						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{#each groupedPrices().bonds as price}
@@ -666,7 +686,7 @@
 				<!-- 주식 지수 차트 -->
 				{#if historicalData['NQ']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-NQ"
 					>
 						<LineChart
@@ -681,7 +701,7 @@
 
 				{#if historicalData['IXIC']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-IXIC"
 					>
 						<LineChart
@@ -696,7 +716,7 @@
 
 				{#if historicalData['SPX']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-SPX"
 					>
 						<LineChart
@@ -711,7 +731,7 @@
 
 				{#if historicalData['RUT']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-RUT"
 					>
 						<LineChart
@@ -726,7 +746,7 @@
 
 				{#if historicalData['N225']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-N225"
 					>
 						<LineChart
@@ -742,7 +762,7 @@
 				<!-- 경제 지표 차트 -->
 				{#if historicalData['M2']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-M2"
 					>
 						<LineChart
@@ -757,7 +777,7 @@
 
 				{#if historicalData['M2_KR']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-M2_KR"
 					>
 						<LineChart
@@ -773,7 +793,7 @@
 				<!-- 환율 차트 -->
 				{#if historicalData['DXY']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-DXY"
 					>
 						<LineChart
@@ -788,7 +808,7 @@
 
 				{#if historicalData['USDKRW']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-USDKRW"
 					>
 						<LineChart
@@ -803,7 +823,7 @@
 
 				{#if historicalData['6J']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-6J"
 					>
 						<LineChart
@@ -818,7 +838,7 @@
 
 				{#if historicalData['6E']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-6E"
 					>
 						<LineChart
@@ -834,7 +854,7 @@
 				<!-- 원자재 차트 -->
 				{#if historicalData['GC']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-GC"
 					>
 						<LineChart
@@ -849,7 +869,7 @@
 
 				{#if historicalData['CL']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-CL"
 					>
 						<LineChart
@@ -865,7 +885,7 @@
 				<!-- 채권 차트 -->
 				{#if historicalData['TNX']?.length}
 					<div
-						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						class="glass-surface overflow-hidden rounded-2xl p-8 shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
 						id="chart-TNX"
 					>
 						<LineChart
