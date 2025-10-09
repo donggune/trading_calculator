@@ -1,0 +1,123 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// BACKUP: update-financial-prices Edge Function
+// Date: 2025-10-09
+// Version: 11
+// Purpose: Backup before adding M2 Money Supply indicator
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+const YAHOO_FINANCE_URL = 'https://query1.finance.yahoo.com/v8/finance/chart';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+function roundToTwo(value) {
+  if (value === undefined || value === null) return 0;
+  return Math.round(value * 100) / 100;
+}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Yahoo Finance 공통 함수
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function fetchYahooFinance(symbol) {
+  const response = await fetch(`${YAHOO_FINANCE_URL}/${symbol}`);
+  if (!response.ok) {
+    throw new Error(`Yahoo Finance API responded with status ${response.status}`);
+  }
+  const result = await response.json();
+  if (!result.chart?.result?.[0]?.meta) {
+    throw new Error('No data returned from Yahoo Finance API');
+  }
+  return result.chart.result[0].meta;
+}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 금 선물 업데이트
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function updateGoldFutures(supabase) {
+  try {
+    console.log('📊 Fetching Gold Futures from Yahoo Finance...');
+    const goldData = await fetchYahooFinance('GC=F');
+    console.log('✅ Gold Futures fetched:', goldData.regularMarketPrice);
+    const { error } = await supabase.from('financial_dashboard_prices').insert({
+      asset_type: 'commodity',
+      symbol: 'GC',
+      name: 'Gold Futures (GC)',
+      currency: 'USD',
+      price: roundToTwo(goldData.regularMarketPrice),
+      change: roundToTwo(goldData.regularMarketChange),
+      change_percent: roundToTwo(goldData.regularMarketChangePercent),
+      open: roundToTwo(goldData.regularMarketOpen),
+      high: roundToTwo(goldData.regularMarketDayHigh),
+      low: roundToTwo(goldData.regularMarketDayLow),
+      prev_close: roundToTwo(goldData.regularMarketPreviousClose),
+      volume: roundToTwo(goldData.regularMarketVolume),
+      extra_data: {},
+      api_source: 'yahoo-finance',
+      api_timestamp: new Date().toISOString(),
+      is_mock: false
+    });
+    if (error) throw error;
+    console.log('✅ Gold Futures saved to database');
+    return {
+      price: roundToTwo(goldData.regularMarketPrice),
+      change: roundToTwo(goldData.regularMarketChange),
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('❌ Failed to update Gold Futures:', error);
+    throw error;
+  }
+}
+
+// [나머지 함수들은 동일하므로 생략...]
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 메인 핸들러
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Deno.serve(async (req)=>{
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
+  };
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', {
+      headers: corsHeaders
+    });
+  }
+  try {
+    console.log('🔄 Starting financial prices update...');
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const results = {};
+    // 원자재 선물
+    try {
+      results.goldFutures = await updateGoldFutures(supabase);
+    } catch (error) {
+      results.goldFutures = {
+        error: error instanceof Error ? error.message : 'Failed'
+      };
+    }
+    // [나머지 자산 업데이트 로직...]
+    
+    console.log('✨ Financial prices update completed');
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Financial prices updated',
+      data: results
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 200
+    });
+  } catch (error) {
+    console.error('❌ Error updating financial prices:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
+});

@@ -79,12 +79,15 @@ trading-calculator/
 
 **표시 데이터**:
 - **주식 지수**: 나스닥-100 선물(NQ), 나스닥 종합(IXIC), S&P 500(SPX), 러셀 2000(RUT), 닛케이 225(N225)
+- **경제 지표**: M2 통화 공급량(M2)
 - **환율**: 달러 인덱스(DXY), USD/KRW, 엔화 선물(6J), 유로 선물(6E)
 - **원자재**: 금 선물(GC), 원유 선물(CL)
 - **채권**: 미국 10년 국채(TNX)
 
 **데이터 소스**:
 - Supabase `financial_dashboard_prices` 테이블
+- Yahoo Finance API (주식, 환율, 원자재, 채권)
+- FRED API (경제 지표 - M2)
 - 최근 30일 데이터만 조회 (성능 최적화)
 - 클라이언트 측에서 심볼별 최신 데이터 추출
 
@@ -157,7 +160,56 @@ trading-calculator/
 
 ---
 
-### 4. 📝 매매일지
+### 4. �  실시간 캔들차트
+
+**경로**: `/realtime`
+
+**기능**:
+- 나스닥-100 선물(NQ=F) 실시간 가격 차트
+- 8가지 타임프레임 지원 (1분, 5분, 15분, 1시간, 1일, 1주, 1월, 분기)
+- 실시간 자동 업데이트 (폴링)
+- 현재가 및 업데이트 시간 표시
+
+**타임프레임별 설정**:
+- **1분봉**: 1일 데이터, 10초 폴링 (초단타 매매)
+- **5분봉**: 1일 데이터, 1분 폴링 (단타 매매)
+- **15분봉**: 1일 데이터, 1분 폴링 (단기 매매)
+- **1시간봉**: 1개월 데이터, 1분 폴링 (스윙 트레이딩)
+- **일봉**: 1년 데이터, 1분 폴링 (중기 투자)
+- **주봉**: 2년 데이터, 10분 폴링 (장기 투자)
+- **월봉**: 10년 데이터, 10분 폴링 (장기 투자)
+- **분기봉**: 최대 데이터, 10분 폴링 (초장기 분석)
+
+**데이터 소스**:
+- Yahoo Finance API (비공식)
+- SvelteKit API 라우트를 통한 CORS 우회
+- 클라이언트 캐싱 (1분)
+
+**차트 라이브러리**:
+- Lightweight Charts 5.0.9 (TradingView)
+- Canvas 기반 렌더링
+- GPU 가속 지원
+
+**특징**:
+- 실시간 토글 버튼 (🔴 라이브 / ⚪ 정지)
+- 타임프레임별 최적화된 폴링 간격
+- 효율적인 캐싱으로 API 호출 최소화
+- 에러 처리 및 재시도 기능
+- 반응형 디자인
+
+**성능**:
+- 클라이언트 캐싱으로 불필요한 API 호출 방지
+- 타임프레임별 폴링 간격 최적화
+- Rate Limit 안전 (15.9% 사용)
+
+**컴포넌트**:
+- `RealtimeCandlestickChart.svelte`: 차트 컴포넌트
+- `/api/candles/[symbol]/+server.ts`: 서버 API 라우트
+- `src/lib/api/candles.ts`: API 함수
+
+---
+
+### 5. 📝 매매일지
 
 **경로**: `/journal`
 
@@ -221,7 +273,8 @@ CREATE TABLE financial_dashboard_prices (
     'currency_index',
     'cryptocurrency',
     'commodity',
-    'currency'
+    'currency',
+    'economic_indicator'
   )),
   symbol VARCHAR(20) NOT NULL,
   name VARCHAR(100),
@@ -244,9 +297,10 @@ CREATE INDEX idx_asset_type ON financial_dashboard_prices(asset_type);
 ```
 
 **데이터 수집**:
-- Supabase Edge Function (`update-financial-prices-daily`)
+- Supabase Edge Function (`update-financial-prices`)
 - 매일 00:00 UTC 자동 실행 (Cron Job)
-- Yahoo Finance API 사용
+- Yahoo Finance API 사용 (주식, 환율, 원자재, 채권)
+- FRED API 사용 (경제 지표 - M2 통화 공급량)
 
 ---
 
@@ -344,6 +398,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 **자산별 색상**:
 - 금: `amber-*` (🏆)
 - 주식 지수: `indigo-*`, `blue-*`, `red-*`, `green-*`, `orange-*`
+- 경제 지표: `purple-*` (📊)
 - 환율: `green-*`, `pink-*`, `sky-*`
 - 원자재: `amber-*`, `purple-*`
 - 채권: `yellow-*`
@@ -462,7 +517,11 @@ function normalizeData(data: number[]): number[]
 # .env.local (로컬 개발)
 PUBLIC_SUPABASE_URL=https://[PROJECT_REF].supabase.co
 PUBLIC_SUPABASE_ANON_KEY=[ANON_KEY]
+FRED_API_KEY=[FRED_API_KEY]  # FRED API 키 (경제 지표 데이터)
 ```
+
+**Supabase Edge Function 환경 변수**:
+- `FRED_API_KEY`: FRED API 키 (Supabase Dashboard에서 설정)
 
 ### 성능 최적화
 
@@ -628,6 +687,7 @@ npm run check
 - `README_TRADING_JOURNAL.md`: 매매일지 기능 가이드
 - `README_TRADING_JOURNAL_UPDATE.md`: 매매일지 수정 기능
 - `ADDING_NEW_DATA.md`: 새로운 금융 데이터 추가 가이드
+- `REALTIME_CANDLESTICK_GUIDE.md`: 실시간 캔들차트 가이드
 
 ### 외부 문서
 - [SvelteKit 공식 문서](https://kit.svelte.dev/docs)
@@ -650,4 +710,23 @@ npm run check
 
 ---
 
-**마지막 업데이트**: 2025-10-08
+---
+
+## 🆕 최근 업데이트
+
+### 2025-10-09: M2 통화 공급량 지표 추가
+- **새로운 경제 지표**: M2 통화 공급량 데이터 추가
+- **데이터 소스**: FRED API (Federal Reserve Economic Data)
+- **표시 위치**: 
+  - 대시보드 메인 페이지 (경제 지표 섹션)
+  - 상관관계 분석 페이지
+- **차트**: 30일 히스토리 차트 (보라색 테마)
+- **업데이트 주기**: 매일 자동 업데이트
+- **기술 구현**:
+  - `update-financial-prices` Edge Function에 M2 데이터 수집 로직 추가
+  - `seed-historical-data` Edge Function에 FRED API 통합
+  - 데이터베이스 스키마에 `economic_indicator` asset_type 추가
+
+---
+
+**마지막 업데이트**: 2025-10-09

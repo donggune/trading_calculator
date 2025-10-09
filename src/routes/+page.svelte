@@ -31,6 +31,7 @@
 			'환율 정보 (USD/KRW, USD/JPY, USD/EUR)',
 			'원유(WTI) 가격',
 			'미국 10년 국채 수익률',
+			'M2 통화 공급량 추이',
 			'차트 분석 도구',
 			'30일 히스토리 데이터'
 		],
@@ -71,18 +72,40 @@
 
 			if (fetchError) throw fetchError;
 
-			// 클라이언트에서 각 심볼별 최신 데이터만 추출
-			const latestMap = new Map<string, FinancialPrice>();
+			// 클라이언트에서 각 심볼별 최신 2개 데이터 추출 (변화량 계산용)
+			const symbolDataMap = new Map<string, FinancialPrice[]>();
 			allData?.forEach((item) => {
-				const key = `${item.symbol}-${item.asset_type}`;
-				// 이미 정렬되어 있으므로 처음 만나는 것이 최신 데이터
-				if (!latestMap.has(key)) {
-					latestMap.set(key, item);
+				const key = item.symbol;
+				if (!symbolDataMap.has(key)) {
+					symbolDataMap.set(key, []);
+				}
+				const arr = symbolDataMap.get(key)!;
+				if (arr.length < 2) {
+					arr.push(item);
 				}
 			});
 
-			// Map을 배열로 변환
-			latestPrices = Array.from(latestMap.values());
+			// 최신 데이터와 변화량 계산
+			const latestArray: FinancialPrice[] = [];
+			symbolDataMap.forEach((dataArray, symbol) => {
+				const latest = dataArray[0];
+				const previous = dataArray[1];
+				
+				// 변화량 계산 (DB에 값이 없거나 0인 경우)
+				if (previous && (latest.change === 0 || latest.change === null)) {
+					const currentPrice = Number(latest.price);
+					const previousPrice = Number(previous.price);
+					const change = currentPrice - previousPrice;
+					const changePercent = previousPrice !== 0 ? (change / previousPrice) * 100 : 0;
+					
+					latest.change = change;
+					latest.change_percent = changePercent;
+				}
+				
+				latestArray.push(latest);
+			});
+
+			latestPrices = latestArray;
 			lastUpdated = new Date();
 		} catch (e) {
 			error = e instanceof Error ? e.message : '데이터를 불러오는데 실패했습니다.';
@@ -97,10 +120,11 @@
 			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 			const dateFilter = thirtyDaysAgo.toISOString();
 
-			// 최근 30일 데이터만 필터링하여 가져오기
+			// 최근 30일 데이터만 필터링하여 가져오기 (M2 제외)
 			const { data, error: fetchError } = await supabase
 				.from('financial_dashboard_prices')
 				.select('*')
+				.neq('symbol', 'M2') // M2 제외
 				.gte('created_at', dateFilter) // created_at >= 30일 전
 				.order('created_at', { ascending: true });
 
@@ -115,6 +139,28 @@
 				}
 				grouped[key].push(item);
 			});
+
+			// M2 데이터는 전체 기간 가져오기 (월별 데이터이므로)
+			const { data: m2Data, error: m2Error } = await supabase
+				.from('financial_dashboard_prices')
+				.select('*')
+				.eq('symbol', 'M2')
+				.order('created_at', { ascending: true });
+
+			if (!m2Error && m2Data) {
+				grouped['M2'] = m2Data;
+			}
+
+			// 한국 M2 데이터도 전체 기간 가져오기 (월별 데이터이므로)
+			const { data: m2KrData, error: m2KrError } = await supabase
+				.from('financial_dashboard_prices')
+				.select('*')
+				.eq('symbol', 'M2_KR')
+				.order('created_at', { ascending: true });
+
+			if (!m2KrError && m2KrData) {
+				grouped['M2_KR'] = m2KrData;
+			}
 
 			historicalData = grouped;
 		} catch (e) {
@@ -141,7 +187,23 @@
 		borderColor: string,
 		backgroundColor: string
 	) {
-		const data = historicalData[symbol] || [];
+		const rawData = historicalData[symbol] || [];
+
+		// 날짜별로 그룹화하여 최신 데이터만 사용 (중복 제거)
+		const dataByDate = new Map<string, FinancialPrice>();
+		rawData.forEach((item) => {
+			const dateKey = new Date(item.created_at).toISOString().split('T')[0];
+			const existing = dataByDate.get(dateKey);
+			// 같은 날짜에 여러 데이터가 있으면 created_at이 최신인 것만 사용
+			if (!existing || new Date(item.created_at) > new Date(existing.created_at)) {
+				dataByDate.set(dateKey, item);
+			}
+		});
+
+		// Map을 배열로 변환하고 날짜순 정렬
+		const data = Array.from(dataByDate.values()).sort(
+			(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+		);
 
 		return {
 			labels: data.map((d) => formatDate(d.created_at)),
@@ -238,12 +300,23 @@
 		createChartData('6E', 'Euro Futures (6E)', 'rgb(16, 185, 129)', 'rgba(16, 185, 129, 0.1)')
 	);
 
+	// M2 차트 데이터
+	const m2ChartData = $derived(() =>
+		createChartData('M2', 'M2 Money Supply', 'rgb(139, 92, 246)', 'rgba(139, 92, 246, 0.1)')
+	);
+
+	// 한국 M2 차트 데이터
+	const m2KrChartData = $derived(() =>
+		createChartData('M2_KR', 'Korea M2 Money Supply', 'rgb(236, 72, 153)', 'rgba(236, 72, 153, 0.1)')
+	);
+
 	// 자산 타입 분류 맵 - 성능 최적화: 심볼 체크를 O(1)로
 	const assetTypeMap = {
 		stockIndices: new Set(['SPX', 'IXIC', 'N225', 'RUT', 'NQ']),
 		commodities: new Set(['GC', 'CL', 'GOLD', 'OIL']),
 		bonds: new Set(['TNX', 'TREASURY', 'BOND']),
-		currencies: new Set(['DXY', 'USD', 'USDKRW', '6J', '6E', 'KRW', 'JPY', 'EUR'])
+		currencies: new Set(['DXY', 'USD', 'USDKRW', '6J', '6E', 'KRW', 'JPY', 'EUR']),
+		economicIndicators: new Set(['M2', 'M2_KR'])
 	};
 
 	function getAssetType(symbol: string): keyof typeof assetTypeMap | 'stockIndices' {
@@ -289,6 +362,7 @@
 	const groupedPrices = $derived(() => {
 		const groups = {
 			stockIndices: [] as FinancialPrice[],
+			economicIndicators: [] as FinancialPrice[],
 			currencies: [] as FinancialPrice[],
 			commodities: [] as FinancialPrice[],
 			bonds: [] as FinancialPrice[]
@@ -340,6 +414,9 @@
 			return indexA - indexB;
 		});
 
+		// 경제 지표는 심볼순으로 정렬
+		groups.economicIndicators.sort((a, b) => a.symbol.localeCompare(b.symbol));
+
 		// 채권은 심볼순으로 정렬
 		groups.bonds.sort((a, b) => a.symbol.localeCompare(b.symbol));
 
@@ -371,7 +448,7 @@
 	/>
 	<meta
 		name="keywords"
-		content="실시간 금 시세, 금 가격, 주식 시세, S&P500, NASDAQ, 환율, 달러 환율, 투자 분석, 시장 대시보드, 차트 분석, BullGaze"
+		content="실시간 금 시세, 금 가격, 주식 시세, S&P500, NASDAQ, 환율, 달러 환율, M2 통화 공급량, 경제 지표, 투자 분석, 시장 대시보드, 차트 분석, BullGaze"
 	/>
 	<meta name="author" content="BullGaze" />
 	<meta name="robots" content="index, follow" />
@@ -444,7 +521,26 @@
 								symbol={price.symbol}
 								price={Number(price.price)}
 								currency={price.currency}
-								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								change24h={price.change ? Number(price.change) : undefined}
+								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+							/>
+						{/each}
+					</div>
+				</article>
+			{/if}
+
+			<!-- 경제 지표 -->
+			{#if groupedPrices().economicIndicators.length > 0}
+				<article class="asset-group" aria-labelledby="economic-indicators-title">
+					<h3 id="economic-indicators-title" class="group-title">📊 경제 지표</h3>
+					<div class="price-cards">
+						{#each groupedPrices().economicIndicators as price}
+							<PriceCard
+								name={price.name}
+								symbol={price.symbol}
+								price={Number(price.price)}
+								currency={price.currency}
+								change24h={price.change ? Number(price.change) : undefined}
 								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
 							/>
 						{/each}
@@ -463,7 +559,7 @@
 								symbol={price.symbol}
 								price={Number(price.price)}
 								currency={price.currency}
-								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								change24h={price.change ? Number(price.change) : undefined}
 								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
 							/>
 						{/each}
@@ -482,7 +578,7 @@
 								symbol={price.symbol}
 								price={Number(price.price)}
 								currency={price.currency}
-								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								change24h={price.change ? Number(price.change) : undefined}
 								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
 							/>
 						{/each}
@@ -501,7 +597,7 @@
 								symbol={price.symbol}
 								price={Number(price.price)}
 								currency={price.currency}
-								change24h={price.change_24h ? Number(price.change_24h) : undefined}
+								change24h={price.change ? Number(price.change) : undefined}
 								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
 							/>
 						{/each}
@@ -571,6 +667,31 @@
 						title="닛케이 225 (N225) 지수 추이"
 						currentPrice={getCurrentPrice('N225')}
 						currency={getCurrency('N225')}
+					/>
+				</div>
+			{/if}
+
+			<!-- 경제 지표 차트 -->
+			{#if historicalData['M2']?.length}
+				<div class="chart-wrapper" id="chart-M2">
+					<LineChart
+						labels={m2ChartData().labels}
+						datasets={m2ChartData().datasets}
+						title="미국 M2 통화 공급량 추이"
+						currentPrice={getCurrentPrice('M2')}
+						currency={getCurrency('M2')}
+					/>
+				</div>
+			{/if}
+
+			{#if historicalData['M2_KR']?.length}
+				<div class="chart-wrapper" id="chart-M2_KR">
+					<LineChart
+						labels={m2KrChartData().labels}
+						datasets={m2KrChartData().datasets}
+						title="한국 M2 통화 공급량 추이"
+						currentPrice={getCurrentPrice('M2_KR')}
+						currency={getCurrency('M2_KR')}
 					/>
 				</div>
 			{/if}

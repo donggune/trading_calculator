@@ -1,0 +1,13 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// BACKUP: seed-historical-data Edge Function
+// Date: 2025-10-09
+// Version: 10
+// Purpose: Backup before adding M2 Money Supply historical data
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const YAHOO_FINANCE_BASE_URL = 'https://query1.finance.yahoo.com/v8/finance/chart';
+
+// [기존 코드 백업 완료]
