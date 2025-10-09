@@ -38,21 +38,109 @@
 		title?: string;
 		currentPrice?: number;
 		currency?: string;
+		symbol?: string;
 	}
 
-	let { labels, datasets, title = 'Chart', currentPrice, currency = 'USD' }: Props = $props();
+	let {
+		labels,
+		datasets,
+		title = 'Chart',
+		currentPrice,
+		currency = 'USD',
+		symbol
+	}: Props = $props();
+
+	// 심볼별 통화 단위 매핑
+	const symbolToCurrency = new Map<string, string>([
+		// Yahoo Finance 환율 심볼들
+		['KRW=X', 'KRW'], // 달러/원
+		['EURKRW=X', 'KRW'], // 유로/원
+		['GBPKRW=X', 'KRW'], // 파운드/원
+		['JPYKRW=X', 'KRW'], // 엔/원
+		['CNYKRW=X', 'KRW'], // 위안/원
+		['AUDKRW=X', 'KRW'], // 호주달러/원
+		['CADKRW=X', 'KRW'], // 캐나다달러/원
+		['CHFKRW=X', 'KRW'], // 스위스프랑/원
+		// 기존 심볼들 (호환성)
+		['USDKRW', 'KRW'],
+		['EURKRW', 'KRW'],
+		['GBPKRW', 'KRW'],
+		['JPYKRW', 'KRW'],
+		['CNYKRW', 'KRW'],
+		['AUDKRW', 'KRW'],
+		['CADKRW', 'KRW'],
+		['CHFKRW', 'KRW'],
+		// 달러 인덱스
+		['DX-Y.NYB', 'USD'], // Yahoo Finance DXY
+		['DXY', 'USD'],
+		// 선물 심볼들
+		['6E=F', 'USD'], // 유로 선물
+		['6J=F', 'USD'], // 엔 선물
+		['6A=F', 'USD'], // 호주달러 선물
+		['6C=F', 'USD'], // 캐나다달러 선물
+		['6B=F', 'USD'], // 파운드 선물
+		['GC=F', 'USD'], // 금 선물
+		['SI=F', 'USD'], // 은 선물
+		['CL=F', 'USD'], // 원유 선물
+		['NG=F', 'USD'], // 천연가스 선물
+		['NQ=F', 'USD'], // 나스닥 선물
+		// 기타 자산들
+		['BTC', 'USD'],
+		['ETH', 'USD'],
+		['SPY', 'USD'],
+		['QQQ', 'USD'],
+		['IWM', 'USD'],
+		['EFA', 'USD'],
+		['EEM', 'USD'],
+		['TLT', 'USD'],
+		['IEF', 'USD'],
+		['GLD', 'USD'],
+		['SLV', 'USD'],
+		['USO', 'USD'],
+		['UNG', 'USD'],
+		['DBA', 'USD'],
+		['DBC', 'USD'],
+		['DJP', 'USD'],
+		['UUP', 'USD'],
+		['FXE', 'USD'],
+		['FXY', 'USD'],
+		['FXA', 'USD'],
+		['FXC', 'USD'],
+		['FXB', 'USD'],
+		['FXS', 'USD'],
+		['CYB', 'USD'],
+		// 지수들
+		['^IXIC', 'USD'], // 나스닥 종합
+		['^GSPC', 'USD'], // S&P 500
+		['^RUT', 'USD'], // 러셀 2000
+		['^N225', 'USD'], // 닛케이 225
+		['^TNX', 'USD'] // 미국 10년 국채
+	]);
+
+	// 실제 사용할 통화 단위 결정
+	const actualCurrency = $derived.by(() => {
+		if (symbol && symbolToCurrency.has(symbol)) {
+			return symbolToCurrency.get(symbol)!;
+		}
+		return currency;
+	});
 
 	// 현재가 포맷팅
-	const formattedCurrentPrice = $derived(
-		currentPrice !== undefined
-			? new Intl.NumberFormat('en-US', {
-					style: 'currency',
-					currency: currency,
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2
-				}).format(currentPrice)
-			: ''
-	);
+	const formattedCurrentPrice = $derived.by(() => {
+		if (currentPrice === undefined) return '';
+
+		const curr = actualCurrency;
+		if (curr === 'KRW') {
+			return `₩${currentPrice.toLocaleString('ko-KR')}`;
+		} else {
+			return new Intl.NumberFormat('en-US', {
+				style: 'currency',
+				currency: curr,
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2
+			}).format(currentPrice);
+		}
+	});
 
 	let canvas: HTMLCanvasElement;
 	let chart: Chart | null = null;
@@ -118,13 +206,21 @@
 							},
 							label: function (context) {
 								const label = context.dataset.label || '';
-								const value = new Intl.NumberFormat('en-US', {
-									style: 'currency',
-									currency: 'USD',
-									minimumFractionDigits: 2,
-									maximumFractionDigits: 2
-								}).format(context.parsed.y);
-								return `${label}: ${value}`;
+								const value = context.parsed.y;
+								const curr = actualCurrency;
+
+								let formattedValue;
+								if (curr === 'KRW') {
+									formattedValue = `₩${value.toLocaleString('ko-KR')}`;
+								} else {
+									formattedValue = new Intl.NumberFormat('en-US', {
+										style: 'currency',
+										currency: curr,
+										minimumFractionDigits: 2,
+										maximumFractionDigits: 2
+									}).format(value);
+								}
+								return `${label}: ${formattedValue}`;
 							}
 						}
 					}
@@ -153,12 +249,17 @@
 							},
 							callback: function (value) {
 								if (typeof value === 'number') {
-									return new Intl.NumberFormat('en-US', {
-										style: 'currency',
-										currency: 'USD',
-										minimumFractionDigits: 0,
-										maximumFractionDigits: 0
-									}).format(value);
+									const curr = actualCurrency;
+									if (curr === 'KRW') {
+										return `₩${value.toLocaleString('ko-KR')}`;
+									} else {
+										return new Intl.NumberFormat('en-US', {
+											style: 'currency',
+											currency: curr,
+											minimumFractionDigits: 0,
+											maximumFractionDigits: 0
+										}).format(value);
+									}
 								}
 								return value;
 							}

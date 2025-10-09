@@ -18,14 +18,98 @@
 	let chart: any = null;
 	let candlestickSeries: any = null;
 
+	// 심볼별 통화 단위 매핑
+	const symbolToCurrency = new Map<string, string>([
+		// Yahoo Finance 환율 심볼들
+		['KRW=X', 'KRW'], // 달러/원
+		['EURKRW=X', 'KRW'], // 유로/원
+		['GBPKRW=X', 'KRW'], // 파운드/원
+		['JPYKRW=X', 'KRW'], // 엔/원
+		['CNYKRW=X', 'KRW'], // 위안/원
+		['AUDKRW=X', 'KRW'], // 호주달러/원
+		['CADKRW=X', 'KRW'], // 캐나다달러/원
+		['CHFKRW=X', 'KRW'], // 스위스프랑/원
+		// 기존 심볼들 (호환성)
+		['USDKRW', 'KRW'],
+		['EURKRW', 'KRW'],
+		['GBPKRW', 'KRW'],
+		['JPYKRW', 'KRW'],
+		['CNYKRW', 'KRW'],
+		['AUDKRW', 'KRW'],
+		['CADKRW', 'KRW'],
+		['CHFKRW', 'KRW'],
+		// 달러 인덱스
+		['DX-Y.NYB', 'USD'], // Yahoo Finance DXY
+		['DXY', 'USD'],
+		// 선물 심볼들
+		['6E=F', 'USD'], // 유로 선물
+		['6J=F', 'USD'], // 엔 선물
+		['6A=F', 'USD'], // 호주달러 선물
+		['6C=F', 'USD'], // 캐나다달러 선물
+		['6B=F', 'USD'], // 파운드 선물
+		['GC=F', 'USD'], // 금 선물
+		['SI=F', 'USD'], // 은 선물
+		['CL=F', 'USD'], // 원유 선물
+		['NG=F', 'USD'], // 천연가스 선물
+		['NQ=F', 'USD'], // 나스닥 선물
+		// 기타 자산들
+		['BTC', 'USD'],
+		['ETH', 'USD'],
+		['SPY', 'USD'],
+		['QQQ', 'USD'],
+		['IWM', 'USD'],
+		['EFA', 'USD'],
+		['EEM', 'USD'],
+		['TLT', 'USD'],
+		['IEF', 'USD'],
+		['GLD', 'USD'],
+		['SLV', 'USD'],
+		['USO', 'USD'],
+		['UNG', 'USD'],
+		['DBA', 'USD'],
+		['DBC', 'USD'],
+		['DJP', 'USD'],
+		['UUP', 'USD'],
+		['FXE', 'USD'],
+		['FXY', 'USD'],
+		['FXA', 'USD'],
+		['FXC', 'USD'],
+		['FXB', 'USD'],
+		['FXS', 'USD'],
+		['CYB', 'USD'],
+		// 지수들
+		['^IXIC', 'USD'], // 나스닥 종합
+		['^GSPC', 'USD'], // S&P 500
+		['^RUT', 'USD'], // 러셀 2000
+		['^N225', 'USD'], // 닛케이 225
+		['^TNX', 'USD'] // 미국 10년 국채
+	]);
+
 	// UI state
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 	let isLive = $state(false);
 	let currentPrice = $state<number | null>(null);
+
+	// 현재 심볼의 통화 단위
+	const currency = $derived.by(() => {
+		return symbolToCurrency.get(symbol) || 'USD';
+	});
+
+	// 현재가 포맷팅
+	const formattedCurrentPrice = $derived.by(() => {
+		if (currentPrice === null) return '';
+
+		const curr = currency;
+		if (curr === 'KRW') {
+			return `₩${currentPrice.toLocaleString('ko-KR')}`;
+		} else {
+			return `$${currentPrice.toFixed(2)}`;
+		}
+	});
 	let lastUpdate = $state<Date | null>(null);
 	let selectedInterval = $state(interval);
-	
+
 	// Realtime price polling (separate from chart data)
 	let realtimePriceInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -51,16 +135,16 @@
 	 */
 	function getRangeForInterval(interval: string): string {
 		const rangeMap: Record<string, string> = {
-			'1m': '5d',    // 1분봉: 5일 (~3,600 포인트)
-			'5m': '5d',    // 5분봉: 5일 (~720 포인트)
-			'15m': '5d',   // 15분봉: 5일 (~240 포인트)
-			'1h': '3mo',   // 1시간봉: 3개월 (~2,160 포인트)
-			'1d': '5y',    // 일봉: 5년 (~1,260 포인트)
-			'1wk': '10y',  // 주봉: 10년 (~520 포인트)
-			'1mo': '20y',  // 월봉: 20년 (~240 포인트)
-			'3mo': 'max'   // 분기봉: 최대 (심볼에 따라 다름, 보통 ~100-200 포인트)
+			'1m': '5d', // 1분봉: 5일 (~3,600 포인트)
+			'5m': '5d', // 5분봉: 5일 (~720 포인트)
+			'15m': '5d', // 15분봉: 5일 (~240 포인트)
+			'1h': '3mo', // 1시간봉: 3개월 (~2,160 포인트)
+			'1d': '5y', // 일봉: 5년 (~1,260 포인트)
+			'1wk': '10y', // 주봉: 10년 (~520 포인트)
+			'1mo': '20y', // 월봉: 20년 (~240 포인트)
+			'3mo': 'max' // 분기봉: 최대 (심볼에 따라 다름, 보통 ~100-200 포인트)
 		};
-		
+
 		return rangeMap[interval] || '1d';
 	}
 
@@ -70,7 +154,7 @@
 			console.log('🚀 chartContainer is ready, initializing chart...');
 			initializeChart();
 		}
-		
+
 		// Cleanup function
 		return () => {
 			console.log('🧹 Effect cleanup triggered');
@@ -94,18 +178,18 @@
 
 	function validateChartContainer(): boolean {
 		if (!chartContainer) return false;
-		
+
 		// 차트 컨테이너에 예상치 못한 자식 요소가 있는지 확인
 		const children = Array.from(chartContainer.children);
-		const hasUnexpectedElements = children.some(child => 
-			!child.classList.contains('tv-lightweight-charts')
+		const hasUnexpectedElements = children.some(
+			(child) => !child.classList.contains('tv-lightweight-charts')
 		);
-		
+
 		if (hasUnexpectedElements && import.meta.env.DEV) {
 			console.warn('⚠️ Unexpected elements in chart container:', children);
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -123,30 +207,31 @@
 
 		try {
 			console.log('📈 Initializing chart...');
-			
+
 			// 기존 차트 컨테이너 내용 완전히 비우기 (중요!)
 			chartContainer.innerHTML = '';
-			
+
 			console.log('Container width:', chartContainer.clientWidth);
 			console.log('Container offsetWidth:', chartContainer.offsetWidth);
 			console.log('Container parent width:', chartContainer.parentElement?.clientWidth);
 
 			// 차트 컨테이너의 실제 사용 가능한 너비 계산
 			let width = chartContainer.clientWidth;
-			
+
 			// clientWidth가 0이면 부모의 clientWidth 사용
 			if (!width && chartContainer.parentElement) {
 				const parent = chartContainer.parentElement;
 				const parentStyle = window.getComputedStyle(parent);
-				const parentPadding = parseFloat(parentStyle.paddingLeft) + parseFloat(parentStyle.paddingRight);
+				const parentPadding =
+					parseFloat(parentStyle.paddingLeft) + parseFloat(parentStyle.paddingRight);
 				width = parent.clientWidth - parentPadding;
 			}
-			
+
 			// 그래도 0이면 기본값 사용
 			if (!width) {
 				width = 800;
 			}
-			
+
 			console.log('Using width:', width);
 
 			// 높이도 동적으로 계산 (최소 300px, 최대 600px)
@@ -171,9 +256,6 @@
 				},
 				rightPriceScale: {
 					borderColor: 'rgba(255, 255, 255, 0.2)'
-				},
-				watermark: {
-					visible: false
 				}
 			});
 
@@ -276,30 +358,38 @@
 
 		// 중앙화된 함수 사용
 		const range = getRangeForInterval(selectedInterval);
-		console.log(`🔴 Starting realtime polling with range: ${range} for interval: ${selectedInterval}`);
+		console.log(
+			`🔴 Starting realtime polling with range: ${range} for interval: ${selectedInterval}`
+		);
 
 		let lastCandleTime: number | null = null;
 
-		stopPolling = startRealtimePolling(symbol, selectedInterval, range, pollingInterval, (candles) => {
-			if (candlestickSeries && candles.length > 0) {
-				const lastCandle = candles[candles.length - 1];
-				
-				// 첫 업데이트이거나 새로운 봉이 생성된 경우 전체 데이터 재설정
-				if (lastCandleTime === null || lastCandle.time !== lastCandleTime) {
-					console.log('🔄 New candle detected, updating full data');
-					candlestickSeries.setData(candles as any);
-					lastCandleTime = lastCandle.time;
-				} else {
-					// 같은 봉의 업데이트인 경우 마지막 봉만 업데이트 (성능 최적화)
-					console.log('⚡ Updating last candle only');
-					candlestickSeries.update(lastCandle as any);
+		stopPolling = startRealtimePolling(
+			symbol,
+			selectedInterval,
+			range,
+			pollingInterval,
+			(candles) => {
+				if (candlestickSeries && candles.length > 0) {
+					const lastCandle = candles[candles.length - 1];
+
+					// 첫 업데이트이거나 새로운 봉이 생성된 경우 전체 데이터 재설정
+					if (lastCandleTime === null || lastCandle.time !== lastCandleTime) {
+						console.log('🔄 New candle detected, updating full data');
+						candlestickSeries.setData(candles as any);
+						lastCandleTime = Number(lastCandle.time);
+					} else {
+						// 같은 봉의 업데이트인 경우 마지막 봉만 업데이트 (성능 최적화)
+						console.log('⚡ Updating last candle only');
+						candlestickSeries.update(lastCandle as any);
+					}
+
+					// 현재가 업데이트
+					currentPrice = Number(lastCandle.close);
+					lastUpdate = new Date();
 				}
-				
-				// 현재가 업데이트
-				currentPrice = lastCandle.close;
-				lastUpdate = new Date();
 			}
-		});
+		);
 	}
 
 	function stopRealtime() {
@@ -323,10 +413,10 @@
 		try {
 			const { fetchCandlesWithCache } = await import('$lib/api/candles');
 			const candles = await fetchCandlesWithCache(symbol, '1m', '1d');
-			
+
 			if (candles.length > 0) {
 				const lastCandle = candles[candles.length - 1];
-				currentPrice = lastCandle.close;
+				currentPrice = Number(lastCandle.close);
 				lastUpdate = new Date();
 				console.log(`💰 Realtime price updated: ${currentPrice.toFixed(2)}`);
 			}
@@ -361,7 +451,7 @@
 		selectedInterval = newInterval;
 		stopRealtime();
 		stopRealtimePricePolling();
-		
+
 		// Only load data if chart is initialized
 		if (isInitialized && candlestickSeries) {
 			loadData();
@@ -393,7 +483,7 @@
 			{#if currentPrice !== null}
 				<div class="current-price">
 					<span class="price-label">현재가:</span>
-					<span class="price-value">${currentPrice.toFixed(2)}</span>
+					<span class="price-value">{formattedCurrentPrice}</span>
 				</div>
 			{/if}
 		</div>
@@ -412,7 +502,12 @@
 				{/each}
 			</div>
 
-			<button class="realtime-toggle" class:active={isLive} onclick={toggleRealtime} disabled={loading}>
+			<button
+				class="realtime-toggle"
+				class:active={isLive}
+				onclick={toggleRealtime}
+				disabled={loading}
+			>
 				{#if isLive}
 					<span class="live-indicator">🔴</span>
 					실시간

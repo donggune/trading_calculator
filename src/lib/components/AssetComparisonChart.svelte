@@ -25,6 +25,73 @@
 	// 세션 동안 유지되는 색상 매핑(심볼 -> 색상)
 	const symbolToColor = new Map<string, string>();
 
+	// 심볼별 통화 단위 매핑
+	const symbolToCurrency = new Map<string, string>([
+		// Yahoo Finance 환율 심볼들
+		['KRW=X', 'KRW'], // 달러/원
+		['EURKRW=X', 'KRW'], // 유로/원
+		['GBPKRW=X', 'KRW'], // 파운드/원
+		['JPYKRW=X', 'KRW'], // 엔/원
+		['CNYKRW=X', 'KRW'], // 위안/원
+		['AUDKRW=X', 'KRW'], // 호주달러/원
+		['CADKRW=X', 'KRW'], // 캐나다달러/원
+		['CHFKRW=X', 'KRW'], // 스위스프랑/원
+		// 기존 심볼들 (호환성)
+		['USDKRW', 'KRW'],
+		['EURKRW', 'KRW'],
+		['GBPKRW', 'KRW'],
+		['JPYKRW', 'KRW'],
+		['CNYKRW', 'KRW'],
+		['AUDKRW', 'KRW'],
+		['CADKRW', 'KRW'],
+		['CHFKRW', 'KRW'],
+		// 달러 인덱스
+		['DX-Y.NYB', 'USD'], // Yahoo Finance DXY
+		['DXY', 'USD'],
+		// 선물 심볼들
+		['6E=F', 'USD'], // 유로 선물
+		['6J=F', 'USD'], // 엔 선물
+		['6A=F', 'USD'], // 호주달러 선물
+		['6C=F', 'USD'], // 캐나다달러 선물
+		['6B=F', 'USD'], // 파운드 선물
+		['GC=F', 'USD'], // 금 선물
+		['SI=F', 'USD'], // 은 선물
+		['CL=F', 'USD'], // 원유 선물
+		['NG=F', 'USD'], // 천연가스 선물
+		['NQ=F', 'USD'], // 나스닥 선물
+		// 기타 자산들
+		['BTC', 'USD'],
+		['ETH', 'USD'],
+		['SPY', 'USD'],
+		['QQQ', 'USD'],
+		['IWM', 'USD'],
+		['EFA', 'USD'],
+		['EEM', 'USD'],
+		['TLT', 'USD'],
+		['IEF', 'USD'],
+		['GLD', 'USD'],
+		['SLV', 'USD'],
+		['USO', 'USD'],
+		['UNG', 'USD'],
+		['DBA', 'USD'],
+		['DBC', 'USD'],
+		['DJP', 'USD'],
+		['UUP', 'USD'],
+		['FXE', 'USD'],
+		['FXY', 'USD'],
+		['FXA', 'USD'],
+		['FXC', 'USD'],
+		['FXB', 'USD'],
+		['FXS', 'USD'],
+		['CYB', 'USD'],
+		// 지수들
+		['^IXIC', 'USD'], // 나스닥 종합
+		['^GSPC', 'USD'], // S&P 500
+		['^RUT', 'USD'], // 러셀 2000
+		['^N225', 'USD'], // 닛케이 225
+		['^TNX', 'USD'] // 미국 10년 국채
+	]);
+
 	// 다음으로 할당할 팔레트 인덱스 계산 (가장 낮은 미사용 인덱스)
 	function getNextPaletteIndex(): number {
 		const used = new Set<number>();
@@ -46,6 +113,20 @@
 		if (symbolToColor.has(symbol)) return;
 		const color = fixedPalette[getNextPaletteIndex() % fixedPalette.length];
 		symbolToColor.set(symbol, color);
+	}
+
+	// 심볼에 맞는 통화 단위 가져오기
+	function getCurrencyForSymbol(symbol: string): string {
+		return symbolToCurrency.get(symbol) || 'USD';
+	}
+
+	// 통화 단위에 맞는 포맷팅
+	function formatCurrency(value: number, currency: string): string {
+		if (currency === 'KRW') {
+			return `₩${value.toLocaleString('ko-KR')}`;
+		} else {
+			return `$${value.toFixed(2)}`;
+		}
 	}
 
 	// 현재 화면에 보이는 자산들에 대한 일관된 색상 매핑 생성
@@ -141,7 +222,11 @@
 								if (normalized) {
 									return `${label}: ${value.toFixed(2)}`;
 								} else {
-									return `${label}: $${value.toFixed(2)}`;
+									// 데이터셋에서 심볼 찾기
+									const dataset = context.dataset;
+									const symbol = assets.find((a) => a.name === dataset.label)?.symbol || '';
+									const currency = getCurrencyForSymbol(symbol);
+									return `${label}: ${formatCurrency(value, currency)}`;
 								}
 							}
 						}
@@ -165,6 +250,16 @@
 								if (normalized) {
 									return value;
 								} else {
+									// 첫 번째 자산의 통화 단위 사용 (대부분의 경우 같은 통화)
+									const firstAsset = assets[0];
+									if (firstAsset) {
+										const currency = getCurrencyForSymbol(firstAsset.symbol);
+										if (currency === 'KRW') {
+											return `₩${value.toLocaleString('ko-KR')}`;
+										} else {
+											return `$${value}`;
+										}
+									}
 									return `$${value}`;
 								}
 							}
