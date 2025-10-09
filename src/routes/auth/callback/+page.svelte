@@ -35,25 +35,31 @@
 	});
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-black">
-	<div class="text-center">
-		{#if loading}
-			<div class="mb-4">
-				<div
-					class="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"
-				></div>
+<div class="min-h-screen pb-24">
+	<div
+		class="relative mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:max-w-none xl:px-12"
+	>
+		<div class="flex min-h-[400px] items-center justify-center">
+			<div class="text-center">
+				{#if loading}
+					<div class="mb-6">
+						<div
+							class="mb-4 h-15 w-15 animate-spin rounded-full border-4 border-white/10 border-t-blue-400 shadow-lg shadow-blue-400/30"
+						></div>
+					</div>
+					<p class="text-lg font-medium text-white">로그인 처리 중...</p>
+				{:else if error}
+					<div class="rounded-2xl border border-red-500/50 bg-red-500/10 p-8 backdrop-blur-xl">
+						<p class="mb-6 text-lg font-semibold text-red-400">{error}</p>
+						<button
+							onclick={() => goto('/')}
+							class="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+						>
+							홈으로 돌아가기
+						</button>
+					</div>
+				{/if}
 			</div>
-			<p class="text-lg text-white">로그인 처리 중...</p>
-		{:else if error}
-			<div class="rounded-lg bg-red-500/20 p-6 text-red-400">
-				<p class="text-lg font-semibold">{error}</p>
-				<button
-					onclick={() => goto('/')}
-					class="mt-4 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
-				>
-					홈으로 돌아가기
-				</button>
-			</div>
-		{/if}
+		</div>
 	</div>
 </div>

@@ -315,15 +315,21 @@
 			class="relative mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:max-w-none xl:px-12"
 		>
 			<!-- 헤더 -->
-			<div class="mb-4 text-center sm:mb-6 md:mb-8">
-				<h1
-					class="mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-xl font-bold tracking-tight text-transparent sm:mb-3 sm:text-2xl md:mb-4 md:text-3xl lg:text-4xl"
-				>
-					매매일지
-				</h1>
-				<p class="px-2 text-xs text-gray-300 sm:px-4 sm:text-sm md:text-base">
+			<div class="mb-12 text-center">
+				<!-- 상단 마진 (메인 타이틀 영역) -->
+				<div class="mb-16"></div>
+
+				<!-- 서브타이틀 -->
+				<p class="text-lg text-gray-300 md:text-xl">
 					투자 거래를 체계적으로 기록하고 성과를 분석해보세요
 				</p>
+
+				<!-- 장식적 요소 -->
+				<div class="mt-4 flex justify-center space-x-2">
+					<div class="h-1 w-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-500"></div>
+					<div class="h-1 w-4 rounded-full bg-gradient-to-r from-orange-500 to-red-500"></div>
+					<div class="h-1 w-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500"></div>
+				</div>
 			</div>
 
 			<!-- 에러 메시지 -->
@@ -1000,5 +1006,4 @@
 {/if}
 
 <style>
-
 </style>

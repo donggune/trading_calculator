@@ -90,18 +90,18 @@
 			symbolDataMap.forEach((dataArray, symbol) => {
 				const latest = dataArray[0];
 				const previous = dataArray[1];
-				
+
 				// 변화량 계산 (DB에 값이 없거나 0인 경우)
 				if (previous && (latest.change === 0 || latest.change === null)) {
 					const currentPrice = Number(latest.price);
 					const previousPrice = Number(previous.price);
 					const change = currentPrice - previousPrice;
 					const changePercent = previousPrice !== 0 ? (change / previousPrice) * 100 : 0;
-					
+
 					latest.change = change;
 					latest.change_percent = changePercent;
 				}
-				
+
 				latestArray.push(latest);
 			});
 
@@ -307,7 +307,12 @@
 
 	// 한국 M2 차트 데이터
 	const m2KrChartData = $derived(() =>
-		createChartData('M2_KR', 'Korea M2 Money Supply', 'rgb(236, 72, 153)', 'rgba(236, 72, 153, 0.1)')
+		createChartData(
+			'M2_KR',
+			'Korea M2 Money Supply',
+			'rgb(236, 72, 153)',
+			'rgba(236, 72, 153, 0.1)'
+		)
 	);
 
 	// 자산 타입 분류 맵 - 성능 최적화: 심볼 체크를 O(1)로
@@ -488,302 +493,393 @@
 	</script>
 </svelte:head>
 
-<div class="dashboard">
-	<header class="dashboard-header">
-		<div class="header-content">
-			<h1 id="page-title">BullGaze Dashboard</h1>
-			<p>실시간 시장 분석 대시보드</p>
+<div class="min-h-screen pb-24">
+	<div
+		class="relative mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:max-w-none xl:px-12"
+	>
+		<!-- 헤더 -->
+		<div class="mb-12 text-center">
+			<!-- 상단 마진 (메인 타이틀 영역) -->
+			<div class="mb-16"></div>
+
+			<!-- 서브타이틀 -->
+			<p class="text-lg text-gray-300 md:text-xl">실시간 시장 분석 대시보드</p>
+
+			<!-- 장식적 요소 -->
+			<div class="mt-4 flex justify-center space-x-2">
+				<div class="h-1 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+				<div class="h-1 w-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+				<div class="h-1 w-2 rounded-full bg-gradient-to-r from-pink-500 to-red-500"></div>
+			</div>
 		</div>
-	</header>
 
-	{#if loading}
-		<div class="loading" role="status" aria-live="polite">
-			<div class="spinner" aria-hidden="true"></div>
-			<p>데이터를 불러오는 중...</p>
-		</div>
-	{:else if error}
-		<div class="error" role="alert" aria-live="assertive">
-			<p>❌ {error}</p>
-		</div>
-	{:else}
-		<!-- 가격 카드 섹션 -->
-		<section class="price-cards-container" aria-labelledby="market-prices-heading">
-			<h2 id="market-prices-heading" class="sr-only">실시간 시장 가격 정보</h2>
+		{#if loading}
+			<div
+				class="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl"
+				role="status"
+				aria-live="polite"
+			>
+				<div
+					class="mb-4 h-15 w-15 animate-spin rounded-full border-4 border-white/10 border-t-blue-400 shadow-lg shadow-blue-400/30"
+					aria-hidden="true"
+				></div>
+				<p class="text-lg font-medium text-white">데이터를 불러오는 중...</p>
+			</div>
+		{:else if error}
+			<div
+				class="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl"
+				role="alert"
+				aria-live="assertive"
+			>
+				<p class="mb-4 text-lg font-medium text-red-400">❌ {error}</p>
+			</div>
+		{:else}
+			<!-- 가격 카드 섹션 -->
+			<section class="mb-12 px-4" aria-labelledby="market-prices-heading">
+				<h2 id="market-prices-heading" class="sr-only">실시간 시장 가격 정보</h2>
 
-			<!-- 주식 지수 -->
-			{#if groupedPrices().stockIndices.length > 0}
-				<article class="asset-group" aria-labelledby="stock-indices-title">
-					<h3 id="stock-indices-title" class="group-title">📈 주식 지수</h3>
-					<div class="price-cards">
-						{#each groupedPrices().stockIndices as price}
-							<PriceCard
-								name={price.name}
-								symbol={price.symbol}
-								price={Number(price.price)}
-								currency={price.currency}
-								change24h={price.change ? Number(price.change) : undefined}
-								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
-							/>
-						{/each}
+				<!-- 주식 지수 -->
+				{#if groupedPrices().stockIndices.length > 0}
+					<article class="mb-10" aria-labelledby="stock-indices-title">
+						<h3
+							id="stock-indices-title"
+							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+						>
+							📈 주식 지수
+						</h3>
+						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{#each groupedPrices().stockIndices as price}
+								<PriceCard
+									name={price.name}
+									symbol={price.symbol}
+									price={Number(price.price)}
+									currency={price.currency}
+									change24h={price.change ? Number(price.change) : undefined}
+									changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+								/>
+							{/each}
+						</div>
+					</article>
+				{/if}
+
+				<!-- 경제 지표 -->
+				{#if groupedPrices().economicIndicators.length > 0}
+					<article class="mb-10" aria-labelledby="economic-indicators-title">
+						<h3
+							id="economic-indicators-title"
+							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+						>
+							📊 경제 지표
+						</h3>
+						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{#each groupedPrices().economicIndicators as price}
+								<PriceCard
+									name={price.name}
+									symbol={price.symbol}
+									price={Number(price.price)}
+									currency={price.currency}
+									change24h={price.change ? Number(price.change) : undefined}
+									changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+								/>
+							{/each}
+						</div>
+					</article>
+				{/if}
+
+				<!-- 환율 -->
+				{#if groupedPrices().currencies.length > 0}
+					<article class="mb-10" aria-labelledby="currencies-title">
+						<h3
+							id="currencies-title"
+							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+						>
+							💱 환율
+						</h3>
+						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{#each groupedPrices().currencies as price}
+								<PriceCard
+									name={price.name}
+									symbol={price.symbol}
+									price={Number(price.price)}
+									currency={price.currency}
+									change24h={price.change ? Number(price.change) : undefined}
+									changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+								/>
+							{/each}
+						</div>
+					</article>
+				{/if}
+
+				<!-- 원자재 -->
+				{#if groupedPrices().commodities.length > 0}
+					<article class="mb-10" aria-labelledby="commodities-title">
+						<h3
+							id="commodities-title"
+							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+						>
+							🥇 원자재
+						</h3>
+						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{#each groupedPrices().commodities as price}
+								<PriceCard
+									name={price.name}
+									symbol={price.symbol}
+									price={Number(price.price)}
+									currency={price.currency}
+									change24h={price.change ? Number(price.change) : undefined}
+									changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+								/>
+							{/each}
+						</div>
+					</article>
+				{/if}
+
+				<!-- 채권 -->
+				{#if groupedPrices().bonds.length > 0}
+					<article class="mb-10" aria-labelledby="bonds-title">
+						<h3
+							id="bonds-title"
+							class="mb-4 flex items-center gap-2 border-l-4 border-blue-400 pl-2 text-xl font-bold text-white"
+						>
+							🏛️ 채권
+						</h3>
+						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+							{#each groupedPrices().bonds as price}
+								<PriceCard
+									name={price.name}
+									symbol={price.symbol}
+									price={Number(price.price)}
+									currency={price.currency}
+									change24h={price.change ? Number(price.change) : undefined}
+									changePercent={price.change_percent ? Number(price.change_percent) : undefined}
+								/>
+							{/each}
+						</div>
+					</article>
+				{/if}
+			</section>
+
+			<!-- 차트 섹션 -->
+			<section class="grid grid-cols-1 gap-8 px-4" aria-labelledby="charts-heading">
+				<h2 id="charts-heading" class="sr-only">시장 가격 추이 차트</h2>
+
+				<!-- 주식 지수 차트 -->
+				{#if historicalData['NQ']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-NQ"
+					>
+						<LineChart
+							labels={nasdaqFuturesChartData().labels}
+							datasets={nasdaqFuturesChartData().datasets}
+							title="나스닥-100 선물 (NQ) 추이"
+							currentPrice={getCurrentPrice('NQ')}
+							currency={getCurrency('NQ')}
+						/>
 					</div>
-				</article>
-			{/if}
+				{/if}
 
-			<!-- 경제 지표 -->
-			{#if groupedPrices().economicIndicators.length > 0}
-				<article class="asset-group" aria-labelledby="economic-indicators-title">
-					<h3 id="economic-indicators-title" class="group-title">📊 경제 지표</h3>
-					<div class="price-cards">
-						{#each groupedPrices().economicIndicators as price}
-							<PriceCard
-								name={price.name}
-								symbol={price.symbol}
-								price={Number(price.price)}
-								currency={price.currency}
-								change24h={price.change ? Number(price.change) : undefined}
-								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
-							/>
-						{/each}
+				{#if historicalData['IXIC']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-IXIC"
+					>
+						<LineChart
+							labels={nasdaqCompChartData().labels}
+							datasets={nasdaqCompChartData().datasets}
+							title="나스닥 종합지수 (IXIC) 추이"
+							currentPrice={getCurrentPrice('IXIC')}
+							currency={getCurrency('IXIC')}
+						/>
 					</div>
-				</article>
-			{/if}
+				{/if}
 
-			<!-- 환율 -->
-			{#if groupedPrices().currencies.length > 0}
-				<article class="asset-group" aria-labelledby="currencies-title">
-					<h3 id="currencies-title" class="group-title">💱 환율</h3>
-					<div class="price-cards">
-						{#each groupedPrices().currencies as price}
-							<PriceCard
-								name={price.name}
-								symbol={price.symbol}
-								price={Number(price.price)}
-								currency={price.currency}
-								change24h={price.change ? Number(price.change) : undefined}
-								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
-							/>
-						{/each}
+				{#if historicalData['SPX']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-SPX"
+					>
+						<LineChart
+							labels={sp500ChartData().labels}
+							datasets={sp500ChartData().datasets}
+							title="S&P 500 (SPX) 지수 추이"
+							currentPrice={getCurrentPrice('SPX')}
+							currency={getCurrency('SPX')}
+						/>
 					</div>
-				</article>
-			{/if}
+				{/if}
 
-			<!-- 원자재 -->
-			{#if groupedPrices().commodities.length > 0}
-				<article class="asset-group" aria-labelledby="commodities-title">
-					<h3 id="commodities-title" class="group-title">🥇 원자재</h3>
-					<div class="price-cards">
-						{#each groupedPrices().commodities as price}
-							<PriceCard
-								name={price.name}
-								symbol={price.symbol}
-								price={Number(price.price)}
-								currency={price.currency}
-								change24h={price.change ? Number(price.change) : undefined}
-								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
-							/>
-						{/each}
+				{#if historicalData['RUT']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-RUT"
+					>
+						<LineChart
+							labels={russell2000ChartData().labels}
+							datasets={russell2000ChartData().datasets}
+							title="러셀 2000 (RUT) 지수 추이"
+							currentPrice={getCurrentPrice('RUT')}
+							currency={getCurrency('RUT')}
+						/>
 					</div>
-				</article>
-			{/if}
+				{/if}
 
-			<!-- 채권 -->
-			{#if groupedPrices().bonds.length > 0}
-				<article class="asset-group" aria-labelledby="bonds-title">
-					<h3 id="bonds-title" class="group-title">🏛️ 채권</h3>
-					<div class="price-cards">
-						{#each groupedPrices().bonds as price}
-							<PriceCard
-								name={price.name}
-								symbol={price.symbol}
-								price={Number(price.price)}
-								currency={price.currency}
-								change24h={price.change ? Number(price.change) : undefined}
-								changePercent={price.change_percent ? Number(price.change_percent) : undefined}
-							/>
-						{/each}
+				{#if historicalData['N225']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-N225"
+					>
+						<LineChart
+							labels={nikkeiChartData().labels}
+							datasets={nikkeiChartData().datasets}
+							title="닛케이 225 (N225) 지수 추이"
+							currentPrice={getCurrentPrice('N225')}
+							currency={getCurrency('N225')}
+						/>
 					</div>
-				</article>
-			{/if}
-		</section>
+				{/if}
 
-		<!-- 차트 섹션 -->
-		<section class="charts" aria-labelledby="charts-heading">
-			<h2 id="charts-heading" class="sr-only">시장 가격 추이 차트</h2>
+				<!-- 경제 지표 차트 -->
+				{#if historicalData['M2']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-M2"
+					>
+						<LineChart
+							labels={m2ChartData().labels}
+							datasets={m2ChartData().datasets}
+							title="미국 M2 통화 공급량 추이"
+							currentPrice={getCurrentPrice('M2')}
+							currency={getCurrency('M2')}
+						/>
+					</div>
+				{/if}
 
-			<!-- 주식 지수 차트 -->
-			{#if historicalData['NQ']?.length}
-				<div class="chart-wrapper" id="chart-NQ">
-					<LineChart
-						labels={nasdaqFuturesChartData().labels}
-						datasets={nasdaqFuturesChartData().datasets}
-						title="나스닥-100 선물 (NQ) 추이"
-						currentPrice={getCurrentPrice('NQ')}
-						currency={getCurrency('NQ')}
-					/>
-				</div>
-			{/if}
+				{#if historicalData['M2_KR']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-M2_KR"
+					>
+						<LineChart
+							labels={m2KrChartData().labels}
+							datasets={m2KrChartData().datasets}
+							title="한국 M2 통화 공급량 추이"
+							currentPrice={getCurrentPrice('M2_KR')}
+							currency={getCurrency('M2_KR')}
+						/>
+					</div>
+				{/if}
 
-			{#if historicalData['IXIC']?.length}
-				<div class="chart-wrapper" id="chart-IXIC">
-					<LineChart
-						labels={nasdaqCompChartData().labels}
-						datasets={nasdaqCompChartData().datasets}
-						title="나스닥 종합지수 (IXIC) 추이"
-						currentPrice={getCurrentPrice('IXIC')}
-						currency={getCurrency('IXIC')}
-					/>
-				</div>
-			{/if}
+				<!-- 환율 차트 -->
+				{#if historicalData['DXY']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-DXY"
+					>
+						<LineChart
+							labels={dollarIndexChartData().labels}
+							datasets={dollarIndexChartData().datasets}
+							title="달러 인덱스 (DXY) 추이"
+							currentPrice={getCurrentPrice('DXY')}
+							currency={getCurrency('DXY')}
+						/>
+					</div>
+				{/if}
 
-			{#if historicalData['SPX']?.length}
-				<div class="chart-wrapper" id="chart-SPX">
-					<LineChart
-						labels={sp500ChartData().labels}
-						datasets={sp500ChartData().datasets}
-						title="S&P 500 (SPX) 지수 추이"
-						currentPrice={getCurrentPrice('SPX')}
-						currency={getCurrency('SPX')}
-					/>
-				</div>
-			{/if}
+				{#if historicalData['USDKRW']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-USDKRW"
+					>
+						<LineChart
+							labels={usdKrwChartData().labels}
+							datasets={usdKrwChartData().datasets}
+							title="달러-원 (USD/KRW) 환율 추이"
+							currentPrice={getCurrentPrice('USDKRW')}
+							currency={getCurrency('USDKRW')}
+						/>
+					</div>
+				{/if}
 
-			{#if historicalData['RUT']?.length}
-				<div class="chart-wrapper" id="chart-RUT">
-					<LineChart
-						labels={russell2000ChartData().labels}
-						datasets={russell2000ChartData().datasets}
-						title="러셀 2000 (RUT) 지수 추이"
-						currentPrice={getCurrentPrice('RUT')}
-						currency={getCurrency('RUT')}
-					/>
-				</div>
-			{/if}
+				{#if historicalData['6J']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-6J"
+					>
+						<LineChart
+							labels={jpyFuturesChartData().labels}
+							datasets={jpyFuturesChartData().datasets}
+							title="엔화 선물 (6J) 추이"
+							currentPrice={getCurrentPrice('6J')}
+							currency={getCurrency('6J')}
+						/>
+					</div>
+				{/if}
 
-			{#if historicalData['N225']?.length}
-				<div class="chart-wrapper" id="chart-N225">
-					<LineChart
-						labels={nikkeiChartData().labels}
-						datasets={nikkeiChartData().datasets}
-						title="닛케이 225 (N225) 지수 추이"
-						currentPrice={getCurrentPrice('N225')}
-						currency={getCurrency('N225')}
-					/>
-				</div>
-			{/if}
+				{#if historicalData['6E']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-6E"
+					>
+						<LineChart
+							labels={eurFuturesChartData().labels}
+							datasets={eurFuturesChartData().datasets}
+							title="유로 선물 (6E) 추이"
+							currentPrice={getCurrentPrice('6E')}
+							currency={getCurrency('6E')}
+						/>
+					</div>
+				{/if}
 
-			<!-- 경제 지표 차트 -->
-			{#if historicalData['M2']?.length}
-				<div class="chart-wrapper" id="chart-M2">
-					<LineChart
-						labels={m2ChartData().labels}
-						datasets={m2ChartData().datasets}
-						title="미국 M2 통화 공급량 추이"
-						currentPrice={getCurrentPrice('M2')}
-						currency={getCurrency('M2')}
-					/>
-				</div>
-			{/if}
+				<!-- 원자재 차트 -->
+				{#if historicalData['GC']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-GC"
+					>
+						<LineChart
+							labels={goldFuturesChartData().labels}
+							datasets={goldFuturesChartData().datasets}
+							title="금 선물 (GC) 가격 추이"
+							currentPrice={getCurrentPrice('GC')}
+							currency={getCurrency('GC')}
+						/>
+					</div>
+				{/if}
 
-			{#if historicalData['M2_KR']?.length}
-				<div class="chart-wrapper" id="chart-M2_KR">
-					<LineChart
-						labels={m2KrChartData().labels}
-						datasets={m2KrChartData().datasets}
-						title="한국 M2 통화 공급량 추이"
-						currentPrice={getCurrentPrice('M2_KR')}
-						currency={getCurrency('M2_KR')}
-					/>
-				</div>
-			{/if}
+				{#if historicalData['CL']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-CL"
+					>
+						<LineChart
+							labels={crudeOilFuturesChartData().labels}
+							datasets={crudeOilFuturesChartData().datasets}
+							title="원유 선물 (CL) 가격 추이"
+							currentPrice={getCurrentPrice('CL')}
+							currency={getCurrency('CL')}
+						/>
+					</div>
+				{/if}
 
-			<!-- 환율 차트 -->
-			{#if historicalData['DXY']?.length}
-				<div class="chart-wrapper" id="chart-DXY">
-					<LineChart
-						labels={dollarIndexChartData().labels}
-						datasets={dollarIndexChartData().datasets}
-						title="달러 인덱스 (DXY) 추이"
-						currentPrice={getCurrentPrice('DXY')}
-						currency={getCurrency('DXY')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['USDKRW']?.length}
-				<div class="chart-wrapper" id="chart-USDKRW">
-					<LineChart
-						labels={usdKrwChartData().labels}
-						datasets={usdKrwChartData().datasets}
-						title="달러-원 (USD/KRW) 환율 추이"
-						currentPrice={getCurrentPrice('USDKRW')}
-						currency={getCurrency('USDKRW')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['6J']?.length}
-				<div class="chart-wrapper" id="chart-6J">
-					<LineChart
-						labels={jpyFuturesChartData().labels}
-						datasets={jpyFuturesChartData().datasets}
-						title="엔화 선물 (6J) 추이"
-						currentPrice={getCurrentPrice('6J')}
-						currency={getCurrency('6J')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['6E']?.length}
-				<div class="chart-wrapper" id="chart-6E">
-					<LineChart
-						labels={eurFuturesChartData().labels}
-						datasets={eurFuturesChartData().datasets}
-						title="유로 선물 (6E) 추이"
-						currentPrice={getCurrentPrice('6E')}
-						currency={getCurrency('6E')}
-					/>
-				</div>
-			{/if}
-
-			<!-- 원자재 차트 -->
-			{#if historicalData['GC']?.length}
-				<div class="chart-wrapper" id="chart-GC">
-					<LineChart
-						labels={goldFuturesChartData().labels}
-						datasets={goldFuturesChartData().datasets}
-						title="금 선물 (GC) 가격 추이"
-						currentPrice={getCurrentPrice('GC')}
-						currency={getCurrency('GC')}
-					/>
-				</div>
-			{/if}
-
-			{#if historicalData['CL']?.length}
-				<div class="chart-wrapper" id="chart-CL">
-					<LineChart
-						labels={crudeOilFuturesChartData().labels}
-						datasets={crudeOilFuturesChartData().datasets}
-						title="원유 선물 (CL) 가격 추이"
-						currentPrice={getCurrentPrice('CL')}
-						currency={getCurrency('CL')}
-					/>
-				</div>
-			{/if}
-
-			<!-- 채권 차트 -->
-			{#if historicalData['TNX']?.length}
-				<div class="chart-wrapper" id="chart-TNX">
-					<LineChart
-						labels={us10YearTreasuryChartData().labels}
-						datasets={us10YearTreasuryChartData().datasets}
-						title="미국 10년 국채 (TNX) 수익률 추이"
-						currentPrice={getCurrentPrice('TNX')}
-						currency={getCurrency('TNX')}
-					/>
-				</div>
-			{/if}
-		</section>
-	{/if}
+				<!-- 채권 차트 -->
+				{#if historicalData['TNX']?.length}
+					<div
+						class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+						id="chart-TNX"
+					>
+						<LineChart
+							labels={us10YearTreasuryChartData().labels}
+							datasets={us10YearTreasuryChartData().datasets}
+							title="미국 10년 국채 (TNX) 수익률 추이"
+							currentPrice={getCurrentPrice('TNX')}
+							currency={getCurrency('TNX')}
+						/>
+					</div>
+				{/if}
+			</section>
+		{/if}
+	</div>
 </div>
 
 <style>
@@ -798,207 +894,5 @@
 		clip: rect(0, 0, 0, 0);
 		white-space: nowrap;
 		border-width: 0;
-	}
-
-	.dashboard {
-		max-width: 1400px;
-		margin: 0 auto;
-		padding: 2rem;
-		min-height: 100vh;
-		/* 페이지 배경 제거: 상위 배경을 그대로 사용 */
-		background: transparent;
-	}
-
-	.dashboard-header {
-		text-align: center;
-		margin-bottom: 3rem;
-		position: relative;
-	}
-
-	.header-content {
-		position: relative;
-		z-index: 2;
-	}
-
-	.dashboard-header h1 {
-		font-size: 3rem;
-		font-weight: 800;
-		background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		margin-bottom: 0.5rem;
-		text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
-	}
-
-	.dashboard-header p {
-		font-size: 1.25rem;
-		color: rgba(255, 255, 255, 0.7);
-		margin-bottom: 1rem;
-	}
-
-
-
-	.loading,
-	.error {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 400px;
-		background: rgba(255, 255, 255, 0.03);
-		border-radius: 16px;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.spinner {
-		width: 60px;
-		height: 60px;
-		border: 4px solid rgba(255, 255, 255, 0.1);
-		border-top-color: #60a5fa;
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-		margin-bottom: 1rem;
-		box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.error p {
-		color: #f87171;
-		font-size: 1.125rem;
-		font-weight: 500;
-		text-align: center;
-	}
-
-	.price-cards-container {
-		margin-bottom: 3rem;
-		padding: 0 1rem;
-	}
-
-	.asset-group {
-		margin-bottom: 2.5rem;
-	}
-
-	.group-title {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: white;
-		margin-bottom: 1rem;
-		padding-left: 0.5rem;
-		border-left: 4px solid #60a5fa;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.price-cards {
-		display: grid;
-		/* 데스크톱: 4열 고정, 동일 너비 */
-		grid-template-columns: repeat(4, 1fr);
-		gap: 1.5rem;
-		margin-bottom: 1rem;
-		max-width: 100%;
-	}
-
-	/* 반응형: 화면 너비에 따라 3→2→1열 */
-	@media (max-width: 1200px) {
-		.price-cards {
-			grid-template-columns: repeat(3, 1fr);
-		}
-	}
-
-	@media (max-width: 992px) {
-		.price-cards {
-			grid-template-columns: repeat(2, 1fr);
-		}
-	}
-
-	.charts {
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 2rem;
-		padding: 0 1rem;
-	}
-
-	.chart-wrapper {
-		background: rgba(255, 255, 255, 0.03);
-		border-radius: 16px;
-		padding: 2rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-		transition: all 0.3s ease;
-		overflow: hidden;
-		width: 100%;
-		max-width: 100%;
-	}
-
-	.chart-wrapper:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-		border-color: rgba(255, 255, 255, 0.2);
-	}
-
-	@media (max-width: 768px) {
-		.dashboard {
-			padding: 0.5rem;
-		}
-
-		.dashboard-header h1 {
-			font-size: 2.5rem;
-		}
-
-		.price-cards-container {
-			padding: 0;
-		}
-
-		.price-cards {
-			grid-template-columns: 1fr;
-		}
-
-		.group-title {
-			font-size: 1.25rem;
-		}
-
-		.charts {
-			grid-template-columns: 1fr;
-			padding: 0;
-			gap: 1rem;
-		}
-
-		.chart-wrapper {
-			padding: 1rem;
-			margin: 0;
-			width: 100%;
-			max-width: 100%;
-			box-sizing: border-box;
-		}
-	}
-
-	@media (max-width: 480px) {
-		.dashboard {
-			padding: 0.25rem;
-		}
-
-		.dashboard-header h1 {
-			font-size: 2rem;
-		}
-
-		.dashboard-header p {
-			font-size: 1rem;
-		}
-
-		.charts {
-			gap: 0.75rem;
-		}
-
-		.chart-wrapper {
-			padding: 0.75rem;
-			border-radius: 12px;
-		}
 	}
 </style>

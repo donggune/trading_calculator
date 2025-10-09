@@ -174,272 +174,110 @@
 	</script>
 </svelte:head>
 
-<div class="analytics-page">
-	<header class="page-header">
-		<div class="header-content">
-			<h1>시장 상관관계 분석</h1>
-			<p>자산 간의 관계성을 파악하고 투자 인사이트를 발견하세요</p>
-		</div>
-	</header>
+<div class="min-h-screen pb-24">
+	<div
+		class="relative mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:max-w-none xl:px-12"
+	>
+		<!-- 헤더 -->
+		<div class="mb-12 text-center">
+			<!-- 상단 마진 (메인 타이틀 영역) -->
+			<div class="mb-16"></div>
 
-	{#if loading}
-		<div class="loading">
-			<div class="spinner"></div>
-			<p>데이터를 분석하는 중...</p>
+			<!-- 서브타이틀 -->
+			<p class="text-lg text-gray-300 md:text-xl">
+				자산 간의 관계성을 파악하고 투자 인사이트를 발견하세요
+			</p>
+
+			<!-- 장식적 요소 -->
+			<div class="mt-4 flex justify-center space-x-2">
+				<div class="h-1 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+				<div class="h-1 w-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+				<div class="h-1 w-2 rounded-full bg-gradient-to-r from-pink-500 to-red-500"></div>
+			</div>
 		</div>
-	{:else if error}
-		<div class="error">
-			<p>❌ {error}</p>
-			<button onclick={loadData} class="retry-button">다시 시도</button>
-		</div>
-	{:else}
-		<!-- 자산 선택 및 비교 (히트맵보다 먼저 노출) -->
-		<section class="section">
-			<div class="comparison-section">
-				<div class="asset-selector">
-					<div class="selector-header">
-						<h3>자산 선택 (최대 4개)</h3>
-						<p class="description">비교할 자산을 선택하세요. 히트맵을 클릭해도 추가됩니다.</p>
+
+		{#if loading}
+			<div
+				class="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl"
+			>
+				<div
+					class="mb-4 h-15 w-15 animate-spin rounded-full border-4 border-white/10 border-t-blue-400 shadow-lg shadow-blue-400/30"
+				></div>
+				<p class="text-lg font-medium text-white">데이터를 분석하는 중...</p>
+			</div>
+		{:else if error}
+			<div
+				class="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl"
+			>
+				<p class="mb-4 text-lg font-medium text-red-400">❌ {error}</p>
+				<button
+					onclick={loadData}
+					class="rounded-lg bg-blue-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-600"
+					>다시 시도</button
+				>
+			</div>
+		{:else}
+			<!-- 자산 선택 및 비교 (히트맵보다 먼저 노출) -->
+			<section class="mb-8 px-4">
+				<div class="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
+					<div class="mb-6">
+						<h3 class="mb-2 text-xl font-bold text-white">자산 선택 (최대 4개)</h3>
+						<p class="text-sm text-gray-400">
+							비교할 자산을 선택하세요. 히트맵을 클릭해도 추가됩니다.
+						</p>
 					</div>
 
-					<div class="asset-chips">
+					<div class="mb-6 flex flex-wrap gap-3">
 						{#each availableAssets as asset}
 							<button
-								class="asset-chip"
-								class:selected={selectedAssets.includes(asset.symbol)}
+								class="flex items-center gap-2 rounded-full border-2 px-4 py-2 text-white transition-all {selectedAssets.includes(
+									asset.symbol
+								)
+									? 'border-blue-500/50 bg-blue-500/20'
+									: 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'}"
 								onclick={() => toggleAssetSelection(asset.symbol)}
 							>
-								<span class="chip-symbol">{asset.symbol}</span>
-								<span class="chip-name">{asset.name}</span>
+								<span class="text-sm font-bold">{asset.symbol}</span>
+								<span class="text-xs text-gray-400">{asset.name}</span>
 								{#if selectedAssets.includes(asset.symbol)}
-									<span class="chip-check">✓</span>
+									<span class="text-blue-400">✓</span>
 								{/if}
 							</button>
 						{/each}
 					</div>
+
+					{#if selectedAssets.length > 0}
+						<div class="mb-6">
+							<label class="flex items-center gap-2 text-sm text-gray-300">
+								<input type="checkbox" bind:checked={useNormalized} class="h-4 w-4" />
+								<span>정규화 보기 (시작점 = 100)</span>
+							</label>
+						</div>
+
+						<AssetComparisonChart
+							assets={comparisonAssets}
+							normalized={useNormalized}
+							title="선택된 자산 비교"
+						/>
+					{/if}
 				</div>
-
-				{#if selectedAssets.length > 0}
-					<div class="comparison-options">
-						<label class="toggle-label">
-							<input type="checkbox" bind:checked={useNormalized} />
-							<span>정규화 보기 (시작점 = 100)</span>
-						</label>
-					</div>
-
-					<AssetComparisonChart
-						assets={comparisonAssets}
-						normalized={useNormalized}
-						title="선택된 자산 비교"
-					/>
-				{/if}
-			</div>
-		</section>
-
-		<!-- 인사이트 카드 -->
-		<section class="section">
-			<InsightCard {insights} />
-		</section>
-
-		<!-- 상관관계 히트맵 -->
-		{#if correlationMatrix}
-			<section class="section">
-				<CorrelationHeatmap data={correlationMatrix} onCellClick={handleHeatmapClick} />
 			</section>
+
+			<!-- 인사이트 카드 -->
+			<section class="mb-8 px-4">
+				<InsightCard {insights} />
+			</section>
+
+			<!-- 상관관계 히트맵 -->
+			{#if correlationMatrix}
+				<section class="mb-8 px-4">
+					<CorrelationHeatmap data={correlationMatrix} onCellClick={handleHeatmapClick} />
+				</section>
+			{/if}
 		{/if}
-	{/if}
+	</div>
 </div>
 
 <style>
-	.analytics-page {
-		max-width: 1400px;
-		margin: 0 auto;
-		padding: 2rem;
-		min-height: 100vh;
-		background: transparent;
-	}
-
-	.page-header {
-		text-align: center;
-		margin-bottom: 3rem;
-	}
-
-
-
-	.header-content h1 {
-		font-size: 3rem;
-		font-weight: 800;
-		background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #ec4899 100%);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		margin-bottom: 0.5rem;
-	}
-
-	.header-content p {
-		font-size: 1.25rem;
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.section {
-		margin-bottom: 2rem;
-	}
-
-	.loading,
-	.error {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 400px;
-		background: rgba(255, 255, 255, 0.03);
-		border-radius: 16px;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.spinner {
-		width: 60px;
-		height: 60px;
-		border: 4px solid rgba(255, 255, 255, 0.1);
-		border-top-color: #60a5fa;
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-		margin-bottom: 1rem;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.error p {
-		color: #f87171;
-		font-size: 1.125rem;
-		margin-bottom: 1rem;
-	}
-
-	.retry-button {
-		padding: 0.75rem 1.5rem;
-		background: #60a5fa;
-		color: white;
-		border: none;
-		border-radius: 8px;
-		font-weight: 600;
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-
-	.retry-button:hover {
-		background: #3b82f6;
-	}
-
-	.comparison-section {
-		background: rgba(255, 255, 255, 0.03);
-		border-radius: 16px;
-		padding: 2rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.selector-header {
-		margin-bottom: 1.5rem;
-	}
-
-	.selector-header h3 {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: white;
-		margin-bottom: 0.5rem;
-	}
-
-	.description {
-		font-size: 0.875rem;
-		color: rgba(255, 255, 255, 0.6);
-	}
-
-	.asset-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.asset-chip {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 1rem;
-		background: rgba(255, 255, 255, 0.05);
-		border: 2px solid rgba(255, 255, 255, 0.1);
-		border-radius: 9999px;
-		cursor: pointer;
-		transition: all 0.2s;
-		color: white;
-	}
-
-	.asset-chip:hover {
-		background: rgba(255, 255, 255, 0.1);
-		border-color: rgba(255, 255, 255, 0.2);
-	}
-
-	.asset-chip.selected {
-		background: rgba(96, 165, 250, 0.2);
-		border-color: rgba(96, 165, 250, 0.5);
-	}
-
-	.chip-symbol {
-		font-weight: 700;
-		font-size: 0.875rem;
-	}
-
-	.chip-name {
-		font-size: 0.75rem;
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.chip-check {
-		font-size: 1rem;
-		color: #60a5fa;
-	}
-
-	.comparison-options {
-		margin-bottom: 1.5rem;
-	}
-
-	.toggle-label {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		color: rgba(255, 255, 255, 0.8);
-		cursor: pointer;
-		font-size: 0.875rem;
-	}
-
-	.toggle-label input[type='checkbox'] {
-		width: 18px;
-		height: 18px;
-		cursor: pointer;
-	}
-
-	@media (max-width: 768px) {
-		.analytics-page {
-			padding: 1rem;
-		}
-
-		.header-content h1 {
-			font-size: 2rem;
-		}
-
-		.header-content p {
-			font-size: 1rem;
-		}
-
-		.comparison-section {
-			padding: 1rem;
-		}
-
-		.asset-chips {
-			gap: 0.5rem;
-		}
-	}
+	/* 추가 스타일이 필요한 경우 여기에 작성 */
 </style>

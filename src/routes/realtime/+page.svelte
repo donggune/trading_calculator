@@ -50,268 +50,71 @@
 	</script>
 </svelte:head>
 
-<div class="realtime-page">
-	<header class="page-header">
-		<div class="header-content">
-			<h1>실시간 캔들차트</h1>
-			<p>{selectedSymbol.name} 실시간 가격 추이</p>
-		</div>
-	</header>
+<div class="min-h-screen pb-24">
+	<div
+		class="relative mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:max-w-none xl:px-12"
+	>
+		<!-- 헤더 -->
+		<div class="mb-12 text-center">
+			<!-- 상단 마진 (메인 타이틀 영역) -->
+			<div class="mb-16"></div>
 
-	<main class="main-content">
-		<!-- 심볼 선택 -->
-		<aside class="symbol-selector">
-			<h3>지수 선택</h3>
-			<div class="symbol-list">
-				{#each symbols as symbolItem}
-					<button
-						class="symbol-btn"
-						class:active={selectedSymbol.symbol === symbolItem.symbol}
-						onclick={() => (selectedSymbol = symbolItem)}
-					>
-						<span class="symbol-short">{symbolItem.shortName}</span>
-						<span class="symbol-name">{symbolItem.name}</span>
-					</button>
-				{/each}
+			<!-- 서브타이틀 -->
+			<p class="text-lg text-gray-300 md:text-xl">
+				{selectedSymbol.name} 실시간 가격 추이
+			</p>
+
+			<!-- 장식적 요소 -->
+			<div class="mt-4 flex justify-center space-x-2">
+				<div class="h-1 w-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+				<div class="h-1 w-4 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+				<div class="h-1 w-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
 			</div>
-		</aside>
+		</div>
 
-		<!-- 캔들차트 -->
-		<section class="chart-section">
-			<RealtimeCandlestickChart
-				symbol={selectedSymbol.symbol}
-				title={selectedSymbol.name}
-				interval="5m"
-				realtime={false}
-			/>
-		</section>
-	</main>
+		<main class="grid grid-cols-1 gap-6 lg:grid-cols-[250px_1fr] lg:gap-8">
+			<!-- 심볼 선택 -->
+			<aside
+				class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:sticky lg:top-24 lg:p-6"
+			>
+				<h3 class="mb-4 text-lg font-bold text-white">지수 선택</h3>
+				<div class="grid grid-cols-2 gap-2 lg:flex lg:flex-col lg:gap-2">
+					{#each symbols as symbolItem}
+						<button
+							class="flex flex-col items-start gap-1 rounded-xl border p-2 text-left transition-all lg:p-3 {selectedSymbol.symbol ===
+							symbolItem.symbol
+								? 'border-blue-500/50 bg-blue-500/20'
+								: 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'}"
+							onclick={() => (selectedSymbol = symbolItem)}
+						>
+							<span
+								class="text-xs font-bold lg:text-sm {selectedSymbol.symbol === symbolItem.symbol
+									? 'text-white'
+									: 'text-blue-400'}">{symbolItem.shortName}</span
+							>
+							<span
+								class="text-xs {selectedSymbol.symbol === symbolItem.symbol
+									? 'text-gray-200'
+									: 'text-gray-400'}">{symbolItem.name}</span
+							>
+						</button>
+					{/each}
+				</div>
+			</aside>
+
+			<!-- 캔들차트 -->
+			<section class="min-w-0">
+				<RealtimeCandlestickChart
+					symbol={selectedSymbol.symbol}
+					title={selectedSymbol.name}
+					interval="5m"
+					realtime={false}
+				/>
+			</section>
+		</main>
+	</div>
 </div>
 
 <style>
-	.realtime-page {
-		max-width: 1400px;
-		margin: 0 auto;
-		padding: 2rem;
-		padding-bottom: 8rem;
-	}
-
-	.page-header {
-		text-align: center;
-		margin-bottom: 3rem;
-	}
-
-	.header-content h1 {
-		font-size: 3rem;
-		font-weight: 800;
-		background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #ec4899 100%);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		margin-bottom: 0.5rem;
-	}
-
-	.header-content p {
-		font-size: 1.25rem;
-		color: rgba(255, 255, 255, 0.7);
-		margin-bottom: 2rem;
-	}
-
-
-
-	.main-content {
-		display: grid;
-		grid-template-columns: 250px 1fr;
-		gap: 2rem;
-		align-items: start;
-	}
-
-	.symbol-selector {
-		background: rgba(255, 255, 255, 0.03);
-		border-radius: 16px;
-		padding: 1.5rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		position: sticky;
-		top: 100px;
-	}
-
-	.symbol-selector h3 {
-		font-size: 1.125rem;
-		font-weight: 700;
-		color: white;
-		margin-bottom: 1rem;
-	}
-
-	.symbol-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.symbol-btn {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.25rem;
-		padding: 0.75rem 1rem;
-		background: rgba(255, 255, 255, 0.05);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 12px;
-		color: rgba(255, 255, 255, 0.8);
-		cursor: pointer;
-		transition: all 0.2s;
-		text-align: left;
-		width: 100%;
-	}
-
-	.symbol-btn:hover {
-		background: rgba(255, 255, 255, 0.1);
-		border-color: rgba(255, 255, 255, 0.2);
-		transform: translateX(4px);
-	}
-
-	.symbol-btn.active {
-		background: rgba(96, 165, 250, 0.2);
-		border-color: rgba(96, 165, 250, 0.5);
-		color: white;
-	}
-
-	.symbol-short {
-		font-size: 1rem;
-		font-weight: 700;
-		font-family: monospace;
-		color: #60a5fa;
-	}
-
-	.symbol-btn.active .symbol-short {
-		color: white;
-	}
-
-	.symbol-name {
-		font-size: 0.75rem;
-		color: rgba(255, 255, 255, 0.6);
-	}
-
-	.symbol-btn.active .symbol-name {
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	.chart-section {
-		min-width: 0;
-		width: 100%;
-	}
-
-	@media (max-width: 1024px) {
-		.main-content {
-			grid-template-columns: 1fr;
-		}
-
-		.symbol-selector {
-			position: static;
-		}
-
-		.symbol-list {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 0.75rem;
-		}
-
-		.symbol-btn {
-			padding: 0.75rem;
-		}
-
-		.symbol-short {
-			font-size: 0.875rem;
-		}
-
-		.symbol-name {
-			font-size: 0.7rem;
-		}
-	}
-
-	@media (max-width: 768px) {
-		.realtime-page {
-			padding: 1rem;
-			padding-bottom: 8rem;
-		}
-
-		.page-header {
-			margin-bottom: 2rem;
-		}
-
-		.header-content h1 {
-			font-size: 1.75rem;
-		}
-
-		.header-content p {
-			font-size: 0.875rem;
-			margin-bottom: 1rem;
-		}
-
-		.main-content {
-			gap: 1.5rem;
-		}
-
-		.symbol-selector {
-			padding: 1rem;
-		}
-
-		.symbol-selector h3 {
-			font-size: 1rem;
-			margin-bottom: 0.75rem;
-		}
-
-		.symbol-list {
-			grid-template-columns: repeat(2, 1fr);
-			gap: 0.5rem;
-		}
-
-		.symbol-btn {
-			padding: 0.875rem 0.75rem;
-		}
-	}
-
-	@media (max-width: 480px) {
-		.realtime-page {
-			padding: 0.75rem;
-			padding-bottom: 8rem;
-		}
-
-		.page-header {
-			margin-bottom: 1.5rem;
-		}
-
-		.header-content h1 {
-			font-size: 1.5rem;
-		}
-
-		.header-content p {
-			font-size: 0.8rem;
-		}
-
-		.symbol-selector {
-			padding: 0.75rem;
-		}
-
-		.symbol-selector h3 {
-			font-size: 0.875rem;
-		}
-
-		.symbol-list {
-			grid-template-columns: repeat(2, 1fr);
-			gap: 0.5rem;
-		}
-
-		.symbol-btn {
-			padding: 0.75rem 0.5rem;
-		}
-
-		.symbol-short {
-			font-size: 0.8rem;
-		}
-
-		.symbol-name {
-			font-size: 0.65rem;
-		}
-	}
+	/* 추가 스타일이 필요한 경우 여기에 작성 */
 </style>
