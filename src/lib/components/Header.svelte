@@ -15,7 +15,7 @@
 	}
 </script>
 
-<header class="fixed top-0 right-0 left-0 z-50 border-b border-black bg-black">
+<header class="sticky z-50 mx-auto" style="top: 0.75rem; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset; border-radius: 24px; max-width: calc(100% - 3rem); margin-left: 1.5rem; margin-right: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.15);">
 	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		<div class="flex h-16 items-center justify-between">
 			<!-- 로고 -->
@@ -199,9 +199,6 @@
 	</div>
 </header>
 
-<!-- 헤더 높이만큼 공간 확보 -->
-<div class="h-16"></div>
-
 <!-- 모바일 네비게이션 패널 -->
 {#if showMobileMenu}
 	<!-- 오버레이 배경 (클릭 시 메뉴 닫기) -->
@@ -217,9 +214,9 @@
 	></div>
 
 	<!-- 메뉴 패널 -->
-	<div class="animate-slide-down fixed top-16 right-0 left-0 z-40 md:hidden">
-		<div class="border-b border-white/10 bg-black/95 shadow-lg">
-			<nav class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+	<div class="animate-slide-down fixed z-40 md:hidden" style="top: 5.5rem; left: 1.5rem; right: 1.5rem;">
+		<div style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.15);">
+			<nav class="px-4 py-3 sm:px-6">
 				<div class="flex flex-col gap-2">
 					<a
 						href="/"
