@@ -51,6 +51,7 @@
 				.from('financial_dashboard_prices')
 				.select('*')
 				.gte('created_at', dateFilter)
+				.neq('asset_type', 'economic_indicator')
 				.order('created_at', { ascending: true });
 
 			if (fetchError) throw fetchError;
