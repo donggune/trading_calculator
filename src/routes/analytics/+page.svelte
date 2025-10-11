@@ -30,8 +30,8 @@
 	let correlationMatrix = $state<CorrelationMatrix | null>(null);
 	let insights = $state<MarketInsight[]>([]);
 
-	// 비교할 자산 선택 (초기: 환율 4개)
-	let selectedAssets = $state<string[]>(['DXY', 'USDKRW', '6J', '6E']);
+	// 비교할 자산 선택 (초기: 달러인덱스와 원환율)
+	let selectedAssets = $state<string[]>(['DXY', 'USDKRW']);
 	let availableAssets = $state<{ symbol: string; name: string }[]>([]);
 	let comparisonAssets = $state<AssetComparison[]>([]);
 	let useNormalized = $state(true);
@@ -56,7 +56,7 @@
 
 			if (fetchError) throw fetchError;
 
-			// 심볼별로 그룹화
+			// 심볼별로 그룹화하고 날짜별 중복 제거
 			const grouped: { [key: string]: FinancialPrice[] } = {};
 			const assetMap = new Map<string, string>();
 
@@ -67,6 +67,28 @@
 				}
 				grouped[symbol].push(item);
 				assetMap.set(symbol, item.name);
+			});
+
+			// 각 심볼별로 날짜별 중복 제거 (같은 날짜의 데이터가 여러 개 있으면 가장 최근 것만 유지)
+			Object.keys(grouped).forEach((symbol) => {
+				const symbolData = grouped[symbol];
+				const dateMap = new Map<string, FinancialPrice>();
+
+				// 날짜별로 가장 최근 데이터만 유지
+				symbolData.forEach((item) => {
+					const dateKey = item.created_at.split('T')[0]; // YYYY-MM-DD
+					if (
+						!dateMap.has(dateKey) ||
+						new Date(item.created_at) > new Date(dateMap.get(dateKey)!.created_at)
+					) {
+						dateMap.set(dateKey, item);
+					}
+				});
+
+				// 날짜순으로 정렬하여 배열로 변환
+				grouped[symbol] = Array.from(dateMap.values()).sort(
+					(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+				);
 			});
 
 			historicalData = grouped;
@@ -128,29 +150,73 @@
 		updateComparisonData();
 	}
 
-	// 비교 데이터 업데이트
+	// 비교 데이터 업데이트 (날짜 동기화)
 	function updateComparisonData() {
+		// 모든 선택된 자산의 공통 날짜 찾기
+		const allDates = new Set<string>();
+		selectedAssets.forEach((symbol) => {
+			if (historicalData[symbol]) {
+				historicalData[symbol].forEach((item) => {
+					const dateKey = item.created_at.split('T')[0]; // YYYY-MM-DD 형식 (UTC 기준)
+					allDates.add(dateKey);
+				});
+			}
+		});
+
+		// 공통 날짜들을 정렬
+		const sortedDates = Array.from(allDates).sort();
+
 		comparisonAssets = selectedAssets
 			.filter((symbol) => historicalData[symbol])
 			.map((symbol) => {
 				const data = historicalData[symbol];
-				const prices = data.map((d) => Number(d.price));
-				const dates = data.map((d) => formatDate(d.created_at));
+				const dataMap = new Map();
+
+				// 데이터를 날짜별로 매핑 (이미 loadData에서 중복 제거됨)
+				data.forEach((item) => {
+					const dateKey = item.created_at.split('T')[0]; // YYYY-MM-DD 형식
+					dataMap.set(dateKey, item);
+				});
+
+				// 공통 날짜에 맞춰 데이터 정렬 및 보간
+				const synchronizedData: number[] = [];
+				const synchronizedDates: string[] = [];
+				let lastPrice: number | null = null;
+
+				sortedDates.forEach((dateKey) => {
+					if (dataMap.has(dateKey)) {
+						// 해당 날짜에 데이터가 있는 경우
+						const item = dataMap.get(dateKey);
+						lastPrice = Number(item.price);
+						synchronizedData.push(lastPrice);
+						const formattedDate = formatDate(item.created_at);
+						synchronizedDates.push(formattedDate);
+					} else if (lastPrice !== null) {
+						// 해당 날짜에 데이터가 없는 경우, 이전 가격 사용 (forward fill)
+						synchronizedData.push(lastPrice);
+						const formattedDate = formatDate(dateKey + 'T00:00:00Z');
+						synchronizedDates.push(formattedDate);
+					}
+					// 첫 번째 데이터가 없는 경우는 건너뜀
+				});
 
 				return {
 					symbol,
 					name: availableAssets.find((a) => a.symbol === symbol)?.name || symbol,
-					data: prices,
-					dates,
-					normalizedData: normalizeData(prices)
+					data: synchronizedData,
+					dates: synchronizedDates,
+					normalizedData: normalizeData(synchronizedData)
 				};
 			});
 	}
 
-	// 날짜 포맷팅
+	// 날짜 포맷팅 (일관된 형식 보장)
 	function formatDate(dateString: string): string {
 		const date = new Date(dateString);
-		return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+		// YYYY-MM-DD 형식에서 직접 월/일 추출하여 일관된 형식 보장
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+		return `${month}월 ${day}일`;
 	}
 
 	onMount(() => {

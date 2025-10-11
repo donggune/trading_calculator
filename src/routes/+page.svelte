@@ -130,7 +130,7 @@
 
 			if (fetchError) throw fetchError;
 
-			// 심볼별로 그룹화
+			// 심볼별로 그룹화하고 날짜별 중복 제거
 			const grouped: { [key: string]: FinancialPrice[] } = {};
 			data?.forEach((item) => {
 				const key = item.symbol;
@@ -138,6 +138,28 @@
 					grouped[key] = [];
 				}
 				grouped[key].push(item);
+			});
+
+			// 각 심볼별로 날짜별 중복 제거 (같은 날짜의 데이터가 여러 개 있으면 가장 최근 것만 유지)
+			Object.keys(grouped).forEach((symbol) => {
+				const symbolData = grouped[symbol];
+				const dateMap = new Map<string, FinancialPrice>();
+
+				// 날짜별로 가장 최근 데이터만 유지
+				symbolData.forEach((item) => {
+					const dateKey = item.created_at.split('T')[0]; // YYYY-MM-DD
+					if (
+						!dateMap.has(dateKey) ||
+						new Date(item.created_at) > new Date(dateMap.get(dateKey)!.created_at)
+					) {
+						dateMap.set(dateKey, item);
+					}
+				});
+
+				// 날짜순으로 정렬하여 배열로 변환
+				grouped[symbol] = Array.from(dateMap.values()).sort(
+					(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+				);
 			});
 
 			// M2 데이터는 전체 기간 가져오기 (월별 데이터이므로)
@@ -172,12 +194,14 @@
 	const dateFormatCache = new Map<string, string>();
 
 	function formatDate(dateString: string): string {
-		if (!dateFormatCache.has(dateString)) {
-			const date = new Date(dateString);
-			// 날짜만 표시 (시간 제외)
-			dateFormatCache.set(dateString, date.toLocaleDateString('ko-KR'));
+		// YYYY-MM-DD 형식에서 직접 월/일 추출하여 일관된 형식 보장
+		const dateKey = dateString.split('T')[0]; // YYYY-MM-DD
+		if (!dateFormatCache.has(dateKey)) {
+			const [year, month, day] = dateKey.split('-').map(Number);
+			const formatted = `${month}월 ${day}일`;
+			dateFormatCache.set(dateKey, formatted);
 		}
-		return dateFormatCache.get(dateString)!;
+		return dateFormatCache.get(dateKey)!;
 	}
 
 	// 차트 데이터 생성 헬퍼 함수 - 성능 최적화: 중복 코드 제거
@@ -189,21 +213,8 @@
 	) {
 		const rawData = historicalData[symbol] || [];
 
-		// 날짜별로 그룹화하여 최신 데이터만 사용 (중복 제거)
-		const dataByDate = new Map<string, FinancialPrice>();
-		rawData.forEach((item) => {
-			const dateKey = new Date(item.created_at).toISOString().split('T')[0];
-			const existing = dataByDate.get(dateKey);
-			// 같은 날짜에 여러 데이터가 있으면 created_at이 최신인 것만 사용
-			if (!existing || new Date(item.created_at) > new Date(existing.created_at)) {
-				dataByDate.set(dateKey, item);
-			}
-		});
-
-		// Map을 배열로 변환하고 날짜순 정렬
-		const data = Array.from(dataByDate.values()).sort(
-			(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-		);
+		// 이미 fetchHistoricalData에서 중복 제거되었으므로 그대로 사용
+		const data = rawData;
 
 		return {
 			labels: data.map((d) => formatDate(d.created_at)),
